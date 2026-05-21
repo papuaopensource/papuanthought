@@ -70,7 +70,7 @@
           {% endif %}
           <span class="text-xs text-neutral-600">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
           {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="hover:text-neutral-300 transition-colors">Older →</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="hover:text-neutral-300 transition-colors flex items-center gap-1">Older <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-4 4l4-4m-4-4l4 4"/></svg></a>
           {% else %}
             <span></span>
           {% endif %}
@@ -80,7 +80,7 @@
     {% else %}
       <p class="text-sm text-neutral-600">No essays published yet. Be the first to write.</p>
       {% if not user.is_authenticated %}
-        <a href="{% url 'accounts:register' %}" class="inline-block mt-4 text-sm text-neutral-300 hover:text-neutral-100 transition-colors">Join the community →</a>
+        <a href="{% url 'accounts:register' %}" class="inline-flex items-center gap-1 mt-4 text-sm text-neutral-300 hover:text-neutral-100 transition-colors">Join the community <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-4 4l4-4m-4-4l4 4"/></svg></a>
       {% endif %}
     {% endif %}
   </section>
