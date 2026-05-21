@@ -38,4 +38,4 @@ Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk panduan berkontribusi.
 
 ## Lisensi
 
-MIT License. Lihat file `LICENSE` untuk detail lengkapnya.
+MIT License. Lihat file [LICENSE](LICENSE) untuk detail lengkapnya.
