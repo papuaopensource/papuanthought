@@ -3,8 +3,8 @@
 {% block title %}Notifications — Papuan Thought{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-  <h1 class="text-xs uppercase tracking-widest text-neutral-600 mb-8">Notifications</h1>
+<div>
+  <h1 class="text-xs uppercase tracking-widest text-neutral-500 mb-8">Notifications</h1>
 
   {% if notifications %}
     <div class="flex flex-col divide-y divide-neutral-800">
@@ -74,7 +74,7 @@
                 {% endif %}
               {% endif %}
             </p>
-            <p class="text-xs text-neutral-700 mt-1">{{ n.created_at|timesince }} ago</p>
+            <p class="text-xs text-neutral-500 mt-1">{{ n.created_at|timesince }} ago</p>
           </div>
 
           <!-- Unread dot -->
@@ -87,7 +87,7 @@
     </div>
   {% else %}
     <div class="text-center py-16">
-      <p class="text-sm text-neutral-600">You're all caught up.</p>
+      <p class="text-sm text-neutral-400">You're all caught up.</p>
     </div>
   {% endif %}
 </div>

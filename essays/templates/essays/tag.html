@@ -3,8 +3,8 @@
 {% block title %}#{{ tag.name }} — Papuan Thought{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-  <p class="text-xs uppercase tracking-widest text-neutral-600 mb-2">Tag</p>
+<div>
+  <p class="text-xs uppercase tracking-widest text-neutral-400 mb-2">Tag</p>
   <h1 class="text-2xl font-semibold text-neutral-100 mb-8">#{{ tag.name }}</h1>
 
   {% if essays %}
@@ -14,10 +14,10 @@
           <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}" class="group block">
             <h2 class="text-base font-medium text-neutral-100 group-hover:text-neutral-300 transition-colors">{{ essay.title }}</h2>
             {% if essay.excerpt %}
-              <p class="text-sm text-neutral-500 mt-1.5 line-clamp-2">{{ essay.excerpt }}</p>
+              <p class="text-sm text-neutral-400 mt-1.5 line-clamp-2">{{ essay.excerpt }}</p>
             {% endif %}
           </a>
-          <div class="flex items-center gap-2 mt-3 text-xs text-neutral-600">
+          <div class="flex items-center gap-2 mt-3 text-xs text-neutral-400">
             <a href="{% url 'accounts:profile' username=essay.author.username %}" class="hover:text-neutral-400 transition-colors">{{ essay.author.username }}</a>
             <span>·</span>
             <span>{{ essay.published_at|date:"N j, Y" }}</span>
@@ -28,7 +28,7 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="text-sm text-neutral-600">No essays tagged with #{{ tag.name }} yet.</p>
+    <p class="text-sm text-neutral-400">No essays tagged with #{{ tag.name }} yet.</p>
   {% endif %}
 </div>
 {% endblock %}

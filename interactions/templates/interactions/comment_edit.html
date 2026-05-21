@@ -3,7 +3,7 @@
 {% block title %}Edit Comment — Papuan Thought{% endblock %}
 
 {% block content %}
-<div class="max-w-lg mx-auto">
+<div>
   <div class="flex items-center justify-between mb-8">
     <h1 class="text-xl font-semibold text-neutral-100">Edit Comment</h1>
     <a href="{% url 'essays:detail' username=comment.essay.author.username slug=comment.essay.slug %}"
