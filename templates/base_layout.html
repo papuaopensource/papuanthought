@@ -1,36 +1,85 @@
 {% load static tailwind_tags %}
 <!DOCTYPE html>
-<html lang="en" class="bg-neutral-900 text-neutral-100">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}The Papuan Thought Project{% endblock %}</title>
   <meta name="description" content="{% block description %}A curated social writing network for Papuan voices.{% endblock %}" />
-  
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <style>
-      body { font-family: 'Onest', sans-serif; }
+    [x-cloak] { display: none !important; }
+    body { font-family: 'Onest', sans-serif; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
   </style>
 
-  <!-- Tailwind Style Initialize -->
   {% tailwind_css %}
-  
   {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen flex flex-col bg-neutral-900 text-neutral-200 antialiased">
+<body x-data="{ sidebarOpen: false }"
+      class="h-screen flex flex-col overflow-hidden"
+      style="background-color: #0a0a0a; color: #d4d4d4;">
 
-  {% include "partials/navbar.html" %}
+  <!-- Mobile top bar -->
+  <header class="md:hidden shrink-0 flex items-center justify-between px-4 h-14 border-b"
+          style="background-color: #111111; border-color: #1e1e1e;">
+    <button @click="sidebarOpen = true"
+            class="text-neutral-400 hover:text-neutral-100 transition-colors p-1.5 -ml-1">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <a href="{% url 'essays:feed' %}" class="text-sm font-semibold text-neutral-200">Papuan Thought</a>
+    <div class="w-8"></div>
+  </header>
 
-  <!-- Centered content -->
-  <main class="flex-1 w-full px-4 py-12">
-    {% block content %}{% endblock %}
-  </main>
+  <!-- Layout row -->
+  <div class="flex flex-1 min-h-0">
 
-  {% include "partials/footer.html" %}
+    <!-- Mobile: backdrop -->
+    <div x-show="sidebarOpen" x-cloak
+         @click="sidebarOpen = false"
+         class="fixed inset-0 z-40 md:hidden bg-black/70"
+         x-transition:enter="transition-opacity ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+    </div>
+
+    <!-- Mobile: slide-over sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r overflow-y-auto
+                transition-transform duration-200 ease-in-out md:hidden"
+         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+         style="background-color: #111111; border-color: #1e1e1e;">
+      {% include "partials/sidebar_left.html" %}
+    </div>
+
+    <!-- Desktop: inline sidebar -->
+    <aside class="hidden md:flex md:w-56 md:shrink-0 md:flex-col border-r overflow-y-auto"
+           style="background-color: #111111; border-color: #1e1e1e;">
+      {% include "partials/sidebar_left.html" %}
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 overflow-y-auto">
+      <div class="max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+  </div>
 
 </body>
 </html>

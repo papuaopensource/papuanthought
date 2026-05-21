@@ -1,0 +1,132 @@
+{% url 'essays:feed' as url_feed %}
+{% url 'commons:about' as url_about %}
+{% url 'commons:guidelines' as url_guidelines %}
+
+<div class="flex flex-col h-full">
+
+  <!-- Mobile close button -->
+  <div class="md:hidden flex items-center justify-between px-5 pt-4 pb-3 border-b border-[#1e1e1e] shrink-0">
+    <span class="text-sm font-semibold text-neutral-200">Menu</span>
+    <button @click="sidebarOpen = false"
+            class="text-neutral-500 hover:text-neutral-100 transition-colors p-1 -mr-1">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Brand -->
+  <div class="px-5 py-4 border-b border-[#1e1e1e] shrink-0">
+    <a href="{{ url_feed }}" class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-neutral-100 shrink-0" style="background-color: #2a2a2a;">
+        P
+      </div>
+      <div class="leading-tight">
+        <p class="text-sm font-semibold text-neutral-200 tracking-tight">Papuan Thought</p>
+        <p class="text-xs text-neutral-500">Writing community</p>
+      </div>
+    </a>
+  </div>
+
+  <!-- Scrollable nav body -->
+  <div class="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5">
+
+    <!-- Home -->
+    <a href="{{ url_feed }}"
+       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.path == url_feed %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100{% endif %}"
+       style="{% if request.path == url_feed %}background-color: #1e1e1e;{% endif %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Home
+    </a>
+
+    {% if user.is_authenticated %}
+      <!-- Notifications -->
+      <a href="{% url 'interactions:notifications' %}"
+         class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors text-neutral-400 hover:text-neutral-100 hover:bg-[#1a1a1a]">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+        </svg>
+        Notifications
+        {% if unread_notification_count %}
+          <span class="ml-auto text-[10px] leading-none bg-red-500/90 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+            {% if unread_notification_count > 9 %}9+{% else %}{{ unread_notification_count }}{% endif %}
+          </span>
+        {% endif %}
+      </a>
+    {% endif %}
+
+    <!-- Divider -->
+    <div class="my-2 border-t border-[#1e1e1e]"></div>
+    <p class="px-3 mb-1 text-xs uppercase tracking-widest text-neutral-500">Community</p>
+
+    <a href="{{ url_about }}"
+       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors text-neutral-400 hover:text-neutral-100 hover:bg-[#1a1a1a]">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4M12 8h.01"/>
+      </svg>
+      About
+    </a>
+
+    <a href="{{ url_guidelines }}"
+       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors text-neutral-400 hover:text-neutral-100 hover:bg-[#1a1a1a]">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      Guidelines
+    </a>
+  </div>
+
+  <!-- User footer -->
+  <div class="shrink-0 border-t border-[#1e1e1e] p-3">
+    {% if user.is_authenticated %}
+      <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-[#1a1a1a] transition-colors">
+        <a href="{% url 'accounts:profile' username=user.username %}" class="flex items-center gap-2.5 flex-1 min-w-0">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0 overflow-hidden" style="background-color: #2a2a2a;">
+            {% if user.profile.photo %}
+              <img src="{{ user.profile.photo.url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
+            {% else %}
+              {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+            {% endif %}
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-neutral-200 truncate">{{ user.first_name }} {{ user.last_name }}</p>
+            <p class="text-xs text-neutral-500 truncate">{{ user.email }}</p>
+          </div>
+        </a>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="text-neutral-500 hover:text-neutral-200 transition-colors p-1 rounded" title="Logout">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    {% else %}
+      <div class="flex items-center gap-2 px-1">
+        <a href="{% url 'accounts:login' %}"
+           class="flex-1 text-center px-3 py-1.5 text-xs text-neutral-400 hover:text-neutral-100 rounded-md hover:bg-[#1a1a1a] transition-colors">
+          Login
+        </a>
+        <a href="{% url 'accounts:register' %}"
+           class="flex-1 text-center px-3 py-1.5 text-xs text-neutral-200 rounded-md border border-[#2a2a2a] hover:border-[#3a3a3a] transition-colors"
+           style="background-color: #1a1a1a;">
+          Join
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
