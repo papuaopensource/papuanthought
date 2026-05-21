@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}The Papuan Thought Project{% endblock %}</title>
@@ -16,22 +17,124 @@
   <style>
     [x-cloak] { display: none !important; }
     body { font-family: 'Onest', sans-serif; }
+
+    /* ── Theme tokens ──────────────────────────────── */
+    :root {
+      --bg-base:     #0a0a0a;
+      --bg-surface:  #111111;
+      --bg-compose:  #141414;
+      --bg-hover:    #161616;
+      --bg-active:   #1e1e1e;
+      --bg-elevated: #1a1a1a;
+      --bg-muted:    #2a2a2a;
+      --bg-date:     #0e0e0e;
+      --border-base: #1e1e1e;
+      --color-body:  #d4d4d4;
+    }
+    [data-theme="light"] {
+      --bg-base:     #f5f4f0;
+      --bg-surface:  #ffffff;
+      --bg-compose:  #efeee8;
+      --bg-hover:    #ede9e3;
+      --bg-active:   #e6e5de;
+      --bg-elevated: #eae9e3;
+      --bg-muted:    #dddbd3;
+      --bg-date:     #f7f6f2;
+      --border-base: #e2e1d9;
+      --color-body:  #1c1c1c;
+    }
+
+    /* ── Light: text ───────────────────────────────── */
+    [data-theme="light"] .text-neutral-100 { color: #1a1a1a; }
+    [data-theme="light"] .text-neutral-200 { color: #2a2a2a; }
+    [data-theme="light"] .text-neutral-300 { color: #3d3d3d; }
+    [data-theme="light"] .text-neutral-400 { color: #565651; }
+    [data-theme="light"] .text-neutral-500 { color: #74726a; }
+    [data-theme="light"] .text-neutral-600 { color: #8c8a82; }
+    [data-theme="light"] .text-neutral-700 { color: #aba9a1; }
+    [data-theme="light"] .hover\:text-neutral-100:hover { color: #0a0a0a; }
+    [data-theme="light"] .hover\:text-neutral-200:hover { color: #1a1a1a; }
+    [data-theme="light"] .hover\:text-neutral-300:hover { color: #2a2a2a; }
+    [data-theme="light"] .hover\:text-white:hover        { color: #000; }
+    [data-theme="light"] .group:hover .group-hover\:text-neutral-100 { color: #0a0a0a; }
+    [data-theme="light"] .group:hover .group-hover\:text-neutral-400 { color: #565651; }
+    [data-theme="light"] .group:hover .group-hover\:text-white       { color: #000; }
+
+    /* ── Light: backgrounds ────────────────────────── */
+    [data-theme="light"] .bg-neutral-800              { background-color: #ede9e2; }
+    [data-theme="light"] .bg-neutral-700              { background-color: #e2dfd8; }
+    [data-theme="light"] .hover\:bg-neutral-800:hover { background-color: #e5e2db; }
+    [data-theme="light"] .hover\:bg-neutral-700:hover { background-color: #d8d5ce; }
+    [data-theme="light"] .hover\:bg-neutral-600:hover { background-color: #ccc9c2; }
+    [data-theme="light"] .hover\:bg-\[\#1a1a1a\]:hover { background-color: var(--bg-elevated); }
+    [data-theme="light"] .hover\:bg-\[\#161616\]:hover  { background-color: var(--bg-hover); }
+    /* Primary action button */
+    [data-theme="light"] .bg-neutral-100              { background-color: #1a1a1a; }
+    [data-theme="light"] .text-neutral-900             { color: #f0efe9; }
+    [data-theme="light"] .hover\:bg-white:hover        { background-color: #2e2e2e; }
+
+    /* ── Light: borders ────────────────────────────── */
+    [data-theme="light"] .border-neutral-700    { border-color: #d5d2cb; }
+    [data-theme="light"] .border-neutral-800    { border-color: #dddad3; }
+    [data-theme="light"] .border-\[\#1e1e1e\]   { border-color: var(--border-base); }
+    [data-theme="light"] .border-\[\#2a2a2a\]   { border-color: #c8c5bd; }
+    [data-theme="light"] .hover\:border-neutral-500:hover  { border-color: #74726a; }
+    [data-theme="light"] .hover\:border-\[\#2a2a2a\]:hover { border-color: #9a9890; }
+    [data-theme="light"] .hover\:border-\[\#3a3a3a\]:hover { border-color: #7a7870; }
+    [data-theme="light"] .focus\:border-neutral-500:focus  { border-color: #74726a; }
+    [data-theme="light"] .focus-within\:border-neutral-500:focus-within { border-color: #74726a; }
+
+    /* ── Light: prose ──────────────────────────────── */
+    [data-theme="light"] .prose-invert {
+      --tw-prose-body:          #2c2c2c;
+      --tw-prose-headings:      #1a1a1a;
+      --tw-prose-lead:          #3d3d3d;
+      --tw-prose-links:         #1a1a1a;
+      --tw-prose-bold:          #1a1a1a;
+      --tw-prose-counters:      #565651;
+      --tw-prose-bullets:       #565651;
+      --tw-prose-hr:            #e2e1d9;
+      --tw-prose-quotes:        #2c2c2c;
+      --tw-prose-quote-borders: #d5d2cb;
+      --tw-prose-captions:      #565651;
+      --tw-prose-code:          #2c2c2c;
+      --tw-prose-pre-code:      #2c2c2c;
+      --tw-prose-pre-bg:        #f0eeea;
+      --tw-prose-th-borders:    #d5d2cb;
+      --tw-prose-td-borders:    #e2e1d9;
+    }
+
+    /* ── Light: placeholders ───────────────────────── */
+    [data-theme="light"] .placeholder-neutral-700::placeholder { color: #aba9a1; }
+    [data-theme="light"] .placeholder-neutral-500::placeholder { color: #a8a5a0; }
+
+    /* ── Scrollbar ─────────────────────────────────── */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+    [data-theme="light"] ::-webkit-scrollbar-thumb { background: #c5c2bb; }
+    [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #aaa8a2; }
   </style>
 
   {% tailwind_css %}
   {% block extra_head %}{% endblock %}
 </head>
-<body x-data="{ sidebarOpen: false }"
+<body x-data="{
+       sidebarOpen: false,
+       theme: document.documentElement.getAttribute('data-theme') || 'dark',
+       toggleTheme() {
+         this.theme = this.theme === 'dark' ? 'light' : 'dark';
+         document.documentElement.setAttribute('data-theme', this.theme);
+         localStorage.setItem('theme', this.theme);
+       }
+     }"
       class="h-screen flex flex-col overflow-hidden"
-      style="background-color: #0a0a0a; color: #d4d4d4;">
+      style="background-color: var(--bg-base); color: var(--color-body);">
 
   <!-- Mobile top bar (hidden on md+) -->
   <header class="md:hidden shrink-0 flex items-center justify-between px-4 h-14 border-b"
-          style="background-color: #111111; border-color: #1e1e1e;">
+          style="background-color: var(--bg-surface); border-color: var(--border-base);">
     <button @click="sidebarOpen = true"
             class="text-neutral-400 hover:text-neutral-100 transition-colors p-1.5 -ml-1">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -78,13 +181,13 @@
     <div class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r overflow-y-auto
                 transition-transform duration-200 ease-in-out md:hidden"
          :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-         style="background-color: #111111; border-color: #1e1e1e;">
+         style="background-color: var(--bg-surface); border-color: var(--border-base);">
       {% include "partials/sidebar_left.html" %}
     </div>
 
     <!-- Desktop: inline sidebar (hidden on mobile) -->
     <aside class="hidden md:flex md:w-56 md:shrink-0 md:flex-col border-r overflow-y-auto"
-           style="background-color: #111111; border-color: #1e1e1e;">
+           style="background-color: var(--bg-surface); border-color: var(--border-base);">
       {% include "partials/sidebar_left.html" %}
     </aside>
 
@@ -97,7 +200,7 @@
 
     <!-- Right sidebar (lg+ only) -->
     <aside class="hidden lg:flex lg:w-52 lg:shrink-0 lg:flex-col border-l overflow-y-auto"
-           style="background-color: #111111; border-color: #1e1e1e;">
+           style="background-color: var(--bg-surface); border-color: var(--border-base);">
       {% include "partials/sidebar_right.html" %}
     </aside>
 

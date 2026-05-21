@@ -6,7 +6,7 @@
 
 <!-- User card -->
 <div class="flex items-center gap-4 mb-10">
-  <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold text-neutral-200 shrink-0 overflow-hidden" style="background-color: #2a2a2a;">
+  <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold text-neutral-200 shrink-0 overflow-hidden" style="background-color: var(--bg-muted);">
     {% if user.profile.photo %}
       <img src="{{ user.profile.photo.url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
     {% else %}
@@ -22,7 +22,7 @@
 <p class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Settings</p>
 
 <!-- Nav rows -->
-<div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: #111;">
+<div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: var(--bg-surface);">
 
   <a href="{% url 'accounts:settings_profile' %}"
      class="flex items-center justify-between px-5 py-4 hover:bg-[#161616] transition-colors group border-b border-[#1e1e1e]">
@@ -62,10 +62,35 @@
 
 </div>
 
+<!-- Appearance -->
+<p class="text-xs uppercase tracking-widest text-neutral-500 mb-3 mt-10">Appearance</p>
+<div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: var(--bg-surface);">
+  <div class="flex items-center justify-between px-5 py-4">
+    <div>
+      <p class="text-sm font-medium text-neutral-200">Theme</p>
+      <p class="text-xs text-neutral-500 mt-0.5">Switch between dark and light mode</p>
+    </div>
+    <button @click="toggleTheme()" type="button"
+            class="flex items-center gap-2 text-xs px-3 py-1.5 rounded-md border transition-colors shrink-0"
+            :style="theme === 'light'
+              ? 'border-color:#d5d2cb; background-color:#e8e6df; color:#1a1a1a;'
+              : 'border-color:#2a2a2a; background-color:#1e1e1e; color:#a3a3a3;'">
+      <svg x-show="theme === 'dark'" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+      </svg>
+      <svg x-show="theme === 'light'" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+      </svg>
+      <span x-text="theme === 'dark' ? 'Dark' : 'Light'"></span>
+    </button>
+  </div>
+</div>
+
 <!-- Danger zone -->
 <div x-data="{ confirm: false }" class="mt-10">
   <p class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Danger zone</p>
-  <div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: #111;">
+  <div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: var(--bg-surface);">
     <div class="px-5 py-4">
       <div x-show="!confirm" class="flex items-center justify-between">
         <div>

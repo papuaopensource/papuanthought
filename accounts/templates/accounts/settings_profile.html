@@ -14,7 +14,7 @@
 
   <!-- Photo -->
   <div class="flex items-center gap-4">
-    <div class="w-16 h-16 rounded-full flex items-center justify-center text-base font-semibold text-neutral-400 overflow-hidden shrink-0" style="background-color: #2a2a2a;">
+    <div class="w-16 h-16 rounded-full flex items-center justify-center text-base font-semibold text-neutral-400 overflow-hidden shrink-0" style="background-color: var(--bg-muted);">
       {% if profile.photo %}
         <img src="{{ profile.photo.url }}" alt="Photo" class="w-full h-full object-cover" />
       {% else %}
