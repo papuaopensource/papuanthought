@@ -22,10 +22,10 @@
 <p class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Settings</p>
 
 <!-- Nav rows -->
-<div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: var(--bg-surface);">
+<div class="rounded-xl overflow-hidden border border-(--border-base)" style="background-color: var(--bg-surface);">
 
   <a href="{% url 'accounts:settings_profile' %}"
-     class="flex items-center justify-between px-5 py-4 hover:bg-[#161616] transition-colors group border-b border-[#1e1e1e]">
+     class="flex items-center justify-between px-5 py-4 hover:bg-(--bg-hover) transition-colors group border-b border-(--border-base)">
     <div>
       <p class="text-sm font-medium text-neutral-200 group-hover:text-neutral-100 transition-colors">Edit profile</p>
       <p class="text-xs text-neutral-500 mt-0.5">Name, bio, photo, location, and social links</p>
@@ -37,7 +37,7 @@
   </a>
 
   <a href="{% url 'accounts:settings_password' %}"
-     class="flex items-center justify-between px-5 py-4 hover:bg-[#161616] transition-colors group border-b border-[#1e1e1e]">
+     class="flex items-center justify-between px-5 py-4 hover:bg-(--bg-hover) transition-colors group border-b border-(--border-base)">
     <div>
       <p class="text-sm font-medium text-neutral-200 group-hover:text-neutral-100 transition-colors">Change password</p>
       <p class="text-xs text-neutral-500 mt-0.5">Update your account password</p>
@@ -49,7 +49,7 @@
   </a>
 
   <a href="{% url 'accounts:profile' username=user.username %}"
-     class="flex items-center justify-between px-5 py-4 hover:bg-[#161616] transition-colors group">
+     class="flex items-center justify-between px-5 py-4 hover:bg-(--bg-hover) transition-colors group">
     <div>
       <p class="text-sm font-medium text-neutral-200 group-hover:text-neutral-100 transition-colors">View profile</p>
       <p class="text-xs text-neutral-500 mt-0.5">See how others see your public page</p>
@@ -64,7 +64,7 @@
 
 <!-- Appearance -->
 <p class="text-xs uppercase tracking-widest text-neutral-500 mb-3 mt-10">Appearance</p>
-<div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: var(--bg-surface);">
+<div class="rounded-xl overflow-hidden border border-(--border-base)" style="background-color: var(--bg-surface);">
   <div class="flex items-center justify-between px-5 py-4">
     <div>
       <p class="text-sm font-medium text-neutral-200">Theme</p>
@@ -72,9 +72,7 @@
     </div>
     <button @click="toggleTheme()" type="button"
             class="flex items-center gap-2 text-xs px-3 py-1.5 rounded-md border transition-colors shrink-0"
-            :style="theme === 'light'
-              ? 'border-color:#d5d2cb; background-color:#e8e6df; color:#1a1a1a;'
-              : 'border-color:#2a2a2a; background-color:#1e1e1e; color:#a3a3a3;'">
+            style="border-color:var(--border-base); background-color:var(--bg-active); color:var(--color-body);">
       <svg x-show="theme === 'dark'" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
       </svg>
@@ -90,7 +88,7 @@
 <!-- Danger zone -->
 <div x-data="{ confirm: false }" class="mt-10">
   <p class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Danger zone</p>
-  <div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: var(--bg-surface);">
+  <div class="rounded-xl overflow-hidden border border-(--border-base)" style="background-color: var(--bg-surface);">
     <div class="px-5 py-4">
       <div x-show="!confirm" class="flex items-center justify-between">
         <div>

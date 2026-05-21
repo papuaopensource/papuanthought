@@ -5,7 +5,7 @@
 <div class="flex flex-col h-full">
 
   <!-- Mobile close button -->
-  <div class="md:hidden flex items-center justify-between px-5 pt-4 pb-3 border-b border-[#1e1e1e] shrink-0">
+  <div class="md:hidden flex items-center justify-between px-5 pt-4 pb-3 border-b border-(--border-base) shrink-0">
     <span class="text-sm font-semibold text-neutral-200">Menu</span>
     <button @click="sidebarOpen = false"
             class="text-neutral-500 hover:text-neutral-100 transition-colors p-1 -mr-1">
@@ -17,7 +17,7 @@
   </div>
 
   <!-- Brand -->
-  <div class="px-5 py-4 border-b border-[#1e1e1e] shrink-0">
+  <div class="px-5 py-4 border-b border-(--border-base) shrink-0">
     <a href="{{ url_feed }}" class="flex items-center gap-2.5">
       <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-neutral-100 shrink-0" style="background-color: var(--bg-muted);">
         P
@@ -34,7 +34,7 @@
 
     <!-- Home -->
     <a href="{{ url_feed }}"
-       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.path == url_feed %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-[#1a1a1a]{% endif %}"
+       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.path == url_feed %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-(--bg-elevated){% endif %}"
        style="{% if request.path == url_feed %}background-color: var(--bg-active);{% endif %}">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -46,7 +46,7 @@
     {% if user.is_authenticated %}
       <!-- Notifications -->
       <a href="{% url 'interactions:notifications' %}"
-         class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.resolver_match.url_name == 'notifications' %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-[#1a1a1a]{% endif %}"
+         class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.resolver_match.url_name == 'notifications' %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-(--bg-elevated){% endif %}"
          style="{% if request.resolver_match.url_name == 'notifications' %}background-color: var(--bg-active);{% endif %}">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
@@ -62,7 +62,7 @@
 
       <!-- Settings -->
       <a href="{% url 'accounts:settings' %}"
-         class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.resolver_match.url_name|slice:':8' == 'settings' %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-[#1a1a1a]{% endif %}"
+         class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.resolver_match.url_name|slice:':8' == 'settings' %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-(--bg-elevated){% endif %}"
          style="{% if request.resolver_match.url_name|slice:':8' == 'settings' %}background-color: var(--bg-active);{% endif %}">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -72,11 +72,11 @@
     {% endif %}
 
     <!-- Divider -->
-    <div class="my-2 border-t border-[#1e1e1e]"></div>
+    <div class="my-2 border-t border-(--border-base)"></div>
     <p class="px-3 mb-1 text-xs uppercase tracking-widest text-neutral-500">Community</p>
 
     <a href="{{ url_about }}"
-       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.resolver_match.url_name == 'about' %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-[#1a1a1a]{% endif %}"
+       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.resolver_match.url_name == 'about' %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-(--bg-elevated){% endif %}"
        style="{% if request.resolver_match.url_name == 'about' %}background-color: var(--bg-active);{% endif %}">
       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"/>
@@ -86,7 +86,7 @@
     </a>
 
     <a href="{{ url_guidelines }}"
-       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.resolver_match.url_name == 'guidelines' %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-[#1a1a1a]{% endif %}"
+       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors {% if request.resolver_match.url_name == 'guidelines' %}text-neutral-100 font-medium{% else %}text-neutral-400 hover:text-neutral-100 hover:bg-(--bg-elevated){% endif %}"
        style="{% if request.resolver_match.url_name == 'guidelines' %}background-color: var(--bg-active);{% endif %}">
       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -100,9 +100,9 @@
   </div>
 
   <!-- User footer -->
-  <div class="shrink-0 border-t border-[#1e1e1e] p-3">
+  <div class="shrink-0 border-t border-(--border-base) p-3">
     {% if user.is_authenticated %}
-      <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-[#1a1a1a] transition-colors">
+      <div class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-(--bg-elevated) transition-colors">
         <a href="{% url 'accounts:profile' username=user.username %}" class="flex items-center gap-2.5 flex-1 min-w-0">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0 overflow-hidden" style="background-color: var(--bg-muted);">
             {% if user.profile.photo %}
@@ -130,11 +130,11 @@
     {% else %}
       <div class="flex items-center gap-2 px-1">
         <a href="{% url 'accounts:login' %}"
-           class="flex-1 text-center px-3 py-1.5 text-xs text-neutral-400 hover:text-neutral-100 rounded-md hover:bg-[#1a1a1a] transition-colors">
+           class="flex-1 text-center px-3 py-1.5 text-xs text-neutral-400 hover:text-neutral-100 rounded-md hover:bg-(--bg-elevated) transition-colors">
           Login
         </a>
         <a href="{% url 'accounts:register' %}"
-           class="flex-1 text-center px-3 py-1.5 text-xs text-neutral-200 rounded-md border border-[#2a2a2a] hover:border-[#3a3a3a] transition-colors"
+           class="flex-1 text-center px-3 py-1.5 text-xs text-neutral-200 rounded-md border border-(--border-base) hover:border-neutral-600 transition-colors"
            style="background-color: var(--bg-elevated);">
           Join
         </a>
