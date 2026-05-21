@@ -1,0 +1,11 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Message Sent — Papuan Thought{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-12">
+  <h1 class="text-2xl font-semibold text-neutral-100 mb-3">Message sent</h1>
+  <p class="text-sm text-neutral-500 mb-6">Thank you for reaching out. We'll get back to you soon.</p>
+  <a href="{% url 'commons:contact' %}" class="text-xs text-neutral-500 hover:text-neutral-300 transition-colors">Send another message</a>
+</div>
+{% endblock %}

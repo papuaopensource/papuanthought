@@ -12,28 +12,33 @@
   </p>
   <p class="text-sm text-neutral-600 mb-8">Have a question, feedback, or want to collaborate? Reach out.</p>
 
-  <form class="flex flex-col gap-4">
+  <form method="post" class="flex flex-col gap-4">
     {% csrf_token %}
     <div class="flex flex-col gap-1">
       <label for="name" class="text-xs text-neutral-400 uppercase tracking-wider">Name</label>
       <input
         id="name" name="name" type="text"
-        class="bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors"
+        value="{{ form_data.name|default:'' }}"
+        class="bg-neutral-800 border {% if errors.name %}border-red-500{% else %}border-neutral-700{% endif %} rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors"
       />
+      {% if errors.name %}<p class="text-xs text-red-400">{{ errors.name }}</p>{% endif %}
     </div>
     <div class="flex flex-col gap-1">
       <label for="email" class="text-xs text-neutral-400 uppercase tracking-wider">Email</label>
       <input
         id="email" name="email" type="email"
-        class="bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors"
+        value="{{ form_data.email|default:'' }}"
+        class="bg-neutral-800 border {% if errors.email %}border-red-500{% else %}border-neutral-700{% endif %} rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors"
       />
+      {% if errors.email %}<p class="text-xs text-red-400">{{ errors.email }}</p>{% endif %}
     </div>
     <div class="flex flex-col gap-1">
       <label for="message" class="text-xs text-neutral-400 uppercase tracking-wider">Message</label>
       <textarea
         id="message" name="message" rows="5"
-        class="bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors resize-none"
-      ></textarea>
+        class="bg-neutral-800 border {% if errors.message %}border-red-500{% else %}border-neutral-700{% endif %} rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors resize-none"
+      >{{ form_data.message|default:'' }}</textarea>
+      {% if errors.message %}<p class="text-xs text-red-400">{{ errors.message }}</p>{% endif %}
     </div>
     <button type="submit" class="bg-neutral-100 text-neutral-900 font-medium text-sm rounded px-4 py-2 hover:bg-neutral-200 transition-colors mt-2">
       Send message

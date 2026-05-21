@@ -130,7 +130,7 @@ UNFOLD = {
         },
     },
     "SIDEBAR": {
-        "show_search": True,
+        "show_search": False,
         "show_all_applications": False,
         "navigation": [
             {
@@ -193,7 +193,9 @@ UNFOLD = {
                     {
                         "title": "Notifications",
                         "icon": "notifications",
-                        "link": reverse_lazy("admin:interactions_notification_changelist"),
+                        "link": reverse_lazy(
+                            "admin:interactions_notification_changelist"
+                        ),
                     },
                 ],
             },
@@ -202,14 +204,9 @@ UNFOLD = {
                 "separator": True,
                 "items": [
                     {
-                        "title": "About",
-                        "icon": "info",
-                        "link": "/about/",
-                    },
-                    {
-                        "title": "Guidelines",
-                        "icon": "policy",
-                        "link": "/guidelines/",
+                        "title": "Contact Messages",
+                        "icon": "mail",
+                        "link": reverse_lazy("admin:commons_contactmessage_changelist"),
                     },
                 ],
             },
