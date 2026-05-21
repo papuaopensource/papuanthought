@@ -1,6 +1,6 @@
 # The Papuan Thought Project
 
-> An open collection of essays, reflections, and ideas written by Papuans.
+> An open-source platform for essays, reflections, and community writing from Papuans.
 
 Diinisiasi oleh **Papua Open Source** — komunitas teknologi yang berkontribusi bagi Tanah Papua melalui perangkat lunak terbuka.
 
