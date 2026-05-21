@@ -57,6 +57,12 @@ def edit_essay(essay: Essay, user, title: str, content: str, excerpt: str = "") 
     return essay
 
 
+def unpublish_essay(essay: Essay) -> Essay:
+    essay.status = Essay.DRAFT
+    essay.save(update_fields=["status"])
+    return essay
+
+
 def archive_essay(essay: Essay) -> Essay:
     essay.status = Essay.ARCHIVED
     essay.save(update_fields=["status"])

@@ -3,7 +3,7 @@
 {% block title %}Edit — {{ essay.title }} — Papuan Thought{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
+<div>
   <div class="flex items-center justify-between mb-8">
     <h1 class="text-xl font-semibold text-neutral-100">Edit Essay</h1>
     <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}"
@@ -91,13 +91,28 @@
       <input type="hidden" name="tag_names" :value="tags.join(',')">
     </div>
 
-    <div class="flex items-center gap-3 pt-2 border-t border-neutral-800 mt-2">
-      <button type="submit"
-              class="text-sm bg-neutral-100 text-neutral-900 font-medium rounded px-4 py-2 hover:bg-neutral-200 transition-colors">
-        Save changes
-      </button>
-      <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}"
-         class="text-sm text-neutral-500 hover:text-neutral-300 transition-colors">Cancel</a>
+    <div class="flex items-center justify-between pt-2 border-t border-neutral-800 mt-2">
+      <div class="flex items-center gap-3">
+        <button type="submit" name="action" value="save"
+                class="text-sm bg-neutral-100 text-neutral-900 font-medium rounded px-4 py-2 hover:bg-neutral-200 transition-colors">
+          Save changes
+        </button>
+        {% if essay.status == 'draft' %}
+          <button type="submit" name="action" value="publish"
+                  class="text-sm bg-neutral-100 text-neutral-900 font-medium rounded px-4 py-2 hover:bg-white transition-colors">
+            Publish
+          </button>
+        {% endif %}
+        <a href="{% if essay.status == 'published' %}{% url 'essays:detail' username=essay.author.username slug=essay.slug %}{% else %}{% url 'accounts:profile' username=essay.author.username %}{% endif %}"
+           class="text-sm text-neutral-500 hover:text-neutral-300 transition-colors">Cancel</a>
+      </div>
+      {% if essay.status == 'published' %}
+        <button type="submit" name="action" value="unpublish"
+                class="text-xs text-neutral-600 hover:text-red-400 transition-colors"
+                onclick="return confirm('Unpublish this essay? It will become a draft and disappear from the feed.')">
+          Unpublish
+        </button>
+      {% endif %}
     </div>
   </form>
 </div>

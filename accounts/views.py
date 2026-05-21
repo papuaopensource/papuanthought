@@ -168,6 +168,9 @@ class ProfileView(DetailView):
             status=EssayModel.PUBLISHED
         ).order_by("-published_at")
         if self.request.user == self.object:
+            context["draft_essays"] = self.object.essays.filter(
+                status=EssayModel.DRAFT
+            ).order_by("-created_at")
             context["bookmarked_essays"] = (
                 EssayModel.objects.filter(
                     bookmarks__user=self.object,
@@ -177,6 +180,7 @@ class ProfileView(DetailView):
                 .order_by("-bookmarks__created_at")
             )
         else:
+            context["draft_essays"] = None
             context["bookmarked_essays"] = None
         context["is_following"] = False
         if self.request.user.is_authenticated and self.request.user != self.object:
