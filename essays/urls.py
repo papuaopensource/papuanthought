@@ -8,5 +8,6 @@ urlpatterns = [
     path("write/", views.EssayWriteView.as_view(), name="write"),
     path("tag/<slug:slug>/", views.TagDetailView.as_view(), name="tag"),
     path("<str:username>/<slug:slug>/edit/", views.EssayEditView.as_view(), name="edit"),
+    path("<str:username>/<slug:slug>/delete/", views.EssayDeleteView.as_view(), name="delete"),
     path("<str:username>/<slug:slug>/", views.EssayDetailView.as_view(), name="detail"),
 ]

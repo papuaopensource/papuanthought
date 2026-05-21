@@ -119,6 +119,16 @@ class EssayEditView(LoginRequiredMixin, View):
 
     def post(self, request, username, slug):
         essay = self._get_essay(request, username, slug)
+        action = request.POST.get("action", "save")
+
+        if action == "publish":
+            services.publish_essay(essay)
+            return redirect("essays:detail", username=essay.author.username, slug=essay.slug)
+
+        if action == "unpublish":
+            services.unpublish_essay(essay)
+            return redirect("accounts:profile", username=request.user.username)
+
         title = request.POST.get("title", "").strip()
         content = request.POST.get("content", "").strip()
         excerpt = request.POST.get("excerpt", "").strip()
@@ -134,7 +144,18 @@ class EssayEditView(LoginRequiredMixin, View):
         services.edit_essay(essay, request.user, title, content, excerpt=excerpt)
         _set_tags(essay, request.POST.get("tag_names", ""))
 
+        if essay.status == Essay.DRAFT:
+            return redirect("accounts:profile", username=request.user.username)
         return redirect("essays:detail", username=essay.author.username, slug=essay.slug)
+
+
+class EssayDeleteView(LoginRequiredMixin, View):
+    def post(self, request, username, slug):
+        essay = get_object_or_404(Essay, author__username=username, slug=slug)
+        if essay.author != request.user:
+            raise PermissionDenied
+        essay.delete()
+        return redirect("accounts:profile", username=request.user.username)
 
 
 class TagDetailView(DetailView):
