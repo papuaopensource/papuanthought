@@ -38,4 +38,4 @@ Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk panduan berkontribusi.
 
 ## Lisensi
 
-MIT License. Lihat file [LICENSE](LICENSE) untuk detail lengkapnya.
+AGPL-3.0 License. Lihat file [LICENSE](LICENSE) untuk detail lengkapnya.
