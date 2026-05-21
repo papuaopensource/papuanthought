@@ -3,87 +3,164 @@
 {% block title %}The Papuan Thought Project{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
 
-  <!-- Featured -->
-  {% if featured %}
-    <section class="mb-12">
-      <p class="text-xs uppercase tracking-widest text-neutral-600 mb-5">Featured</p>
-      <div class="flex flex-col gap-6">
-        {% for essay in featured %}
-          <article>
-            <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}" class="group block">
-              <h2 class="text-lg font-semibold text-neutral-100 group-hover:text-neutral-300 transition-colors leading-snug">{{ essay.title }}</h2>
-              {% if essay.excerpt %}
-                <p class="text-sm text-neutral-500 mt-1.5 line-clamp-2 leading-relaxed">{{ essay.excerpt }}</p>
-              {% endif %}
-              <div class="flex items-center gap-2 mt-3 text-xs text-neutral-600">
-                <a href="{% url 'accounts:profile' username=essay.author.username %}" class="hover:text-neutral-400 transition-colors">{{ essay.author.username }}</a>
-                <span>·</span>
-                <span>{{ essay.published_at|date:"N j, Y" }}</span>
-                <span>·</span>
-                <span>{{ essay.read_time }} min read</span>
-              </div>
-            </a>
-          </article>
-        {% endfor %}
-      </div>
-    </section>
-    <hr class="border-neutral-800 mb-10" />
-  {% endif %}
-
-  <!-- Feed -->
-  <section>
-    <p class="text-xs uppercase tracking-widest text-neutral-600 mb-5">Latest</p>
-    {% if essays %}
-      <div class="flex flex-col divide-y divide-neutral-800">
-        {% for essay in essays %}
-          <article class="py-6 first:pt-0">
-            <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}" class="group block">
-              <h2 class="text-base font-medium text-neutral-100 group-hover:text-neutral-300 transition-colors leading-snug">{{ essay.title }}</h2>
-              {% if essay.excerpt %}
-                <p class="text-sm text-neutral-500 mt-1.5 line-clamp-2 leading-relaxed">{{ essay.excerpt }}</p>
-              {% endif %}
-            </a>
-            <div class="flex items-center gap-2 mt-3 text-xs text-neutral-600">
-              <a href="{% url 'accounts:profile' username=essay.author.username %}" class="hover:text-neutral-400 transition-colors">{{ essay.author.username }}</a>
-              <span>·</span>
-              <span>{{ essay.published_at|date:"N j, Y" }}</span>
-              <span>·</span>
-              <span>{{ essay.read_time }} min read</span>
-              {% for tag in essay.tags.all|slice:":3" %}
-                <span>·</span>
-                <a href="{% url 'essays:tag' slug=tag.slug %}" class="hover:text-neutral-400 transition-colors">#{{ tag.name }}</a>
-              {% endfor %}
-            </div>
-          </article>
-        {% endfor %}
-      </div>
-
-      <!-- Pagination -->
-      {% if is_paginated %}
-        <div class="flex items-center justify-between mt-10 text-sm text-neutral-500">
-          {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}" class="hover:text-neutral-300 transition-colors">← Newer</a>
-          {% else %}
-            <span></span>
-          {% endif %}
-          <span class="text-xs text-neutral-600">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-          {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="hover:text-neutral-300 transition-colors flex items-center gap-1">Older <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-4 4l4-4m-4-4l4 4"/></svg></a>
-          {% else %}
-            <span></span>
-          {% endif %}
-        </div>
-      {% endif %}
-
-    {% else %}
-      <p class="text-sm text-neutral-600">No essays published yet. Be the first to write.</p>
-      {% if not user.is_authenticated %}
-        <a href="{% url 'accounts:register' %}" class="inline-flex items-center gap-1 mt-4 text-sm text-neutral-300 hover:text-neutral-100 transition-colors">Join the community <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-4 4l4-4m-4-4l4 4"/></svg></a>
-      {% endif %}
-    {% endif %}
-  </section>
-
+<!-- Page heading -->
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-neutral-100 tracking-tight">Home</h1>
 </div>
+
+<!-- Compose prompt (authenticated users) -->
+{% if user.is_authenticated %}
+  <div class="flex items-center gap-3 mb-8 p-4 rounded-xl border border-[#1e1e1e]" style="background-color: #141414;">
+    <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0 overflow-hidden" style="background-color: #2a2a2a;">
+      {% if user.profile.photo %}
+        <img src="{{ user.profile.photo.url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
+      {% else %}
+        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+      {% endif %}
+    </div>
+    <a href="{% url 'essays:write' %}" class="flex-1 text-sm text-neutral-500 hover:text-neutral-300 transition-colors">
+      What do you want to write about?
+    </a>
+    <a href="{% url 'essays:write' %}"
+       class="px-4 py-1.5 text-xs font-medium text-neutral-200 rounded-md border border-[#2a2a2a] hover:border-[#3a3a3a] hover:text-white transition-colors shrink-0"
+       style="background-color: #1e1e1e;">
+      Write
+    </a>
+  </div>
+{% endif %}
+
+<!-- Featured essays -->
+{% if featured %}
+  <section class="mb-8">
+    <p class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Featured</p>
+    <div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: #111;">
+      {% for essay in featured %}
+        <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}"
+           class="flex items-start gap-4 px-5 py-5 hover:bg-[#161616] transition-colors group border-b border-[#1e1e1e] last:border-b-0">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0 overflow-hidden mt-0.5" style="background-color: #2a2a2a;">
+            {% if essay.author.profile.photo %}
+              <img src="{{ essay.author.profile.photo.url }}" alt="{{ essay.author.username }}" class="w-full h-full object-cover">
+            {% else %}
+              {{ essay.author.first_name|first|upper }}{{ essay.author.last_name|first|upper }}
+            {% endif %}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <h3 class="text-base font-semibold text-neutral-100 group-hover:text-white transition-colors leading-snug">{{ essay.title }}</h3>
+                <p class="text-sm text-neutral-400 mt-0.5 line-clamp-1">
+                  <span class="text-neutral-300">{{ essay.author.first_name }} {{ essay.author.last_name }}</span>{% if essay.excerpt %}: {{ essay.excerpt|truncatechars:70 }}{% endif %}
+                </p>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="shrink-0 text-neutral-700 group-hover:text-neutral-400 transition-colors mt-0.5">
+                <path d="M5 12h14m-4 4 4-4m-4-4 4 4"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+<!-- Latest essays -->
+<section>
+  {% if essays %}
+    <p class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Latest</p>
+    <div class="rounded-xl overflow-hidden border border-[#1e1e1e]" style="background-color: #111;">
+      {% regroup essays by published_at.date as essays_by_date %}
+      {% for date_group in essays_by_date %}
+
+        <!-- Date header -->
+        <div class="px-4 py-2 border-b border-[#1e1e1e]" style="background-color: #0e0e0e;">
+          <p class="text-xs text-neutral-500">{{ date_group.grouper|date:"N j, Y" }}</p>
+        </div>
+
+        {% for essay in date_group.list %}
+          <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}"
+             class="flex items-start gap-4 px-5 py-5 hover:bg-[#161616] transition-colors group border-b border-[#1e1e1e] last:border-b-0">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0 overflow-hidden mt-0.5" style="background-color: #2a2a2a;">
+              {% if essay.author.profile.photo %}
+                <img src="{{ essay.author.profile.photo.url }}" alt="{{ essay.author.username }}" class="w-full h-full object-cover">
+              {% else %}
+                {{ essay.author.first_name|first|upper }}{{ essay.author.last_name|first|upper }}
+              {% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-base font-semibold text-neutral-100 group-hover:text-white transition-colors leading-snug">{{ essay.title }}</h3>
+                  <p class="text-sm text-neutral-400 mt-0.5 line-clamp-1">
+                    <span class="text-neutral-300">{{ essay.author.first_name }} {{ essay.author.last_name }}</span>{% if essay.excerpt %}: {{ essay.excerpt|truncatechars:80 }}{% endif %}
+                  </p>
+                  <div class="flex items-center gap-2 mt-1.5">
+                    <span class="text-xs text-neutral-500">{{ essay.read_time }} min read</span>
+                    {% if essay.comments.count %}
+                      <span class="text-neutral-600">·</span>
+                      <span class="flex items-center gap-1 text-xs text-neutral-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        {{ essay.comments.count }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="shrink-0 text-neutral-700 group-hover:text-neutral-400 transition-colors mt-0.5">
+                  <path d="M5 12h14m-4 4 4-4m-4-4 4 4"/>
+                </svg>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+      <div class="flex items-center justify-between mt-6 text-neutral-400">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}"
+             class="flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-[#1a1a1a] hover:text-neutral-100 transition-colors text-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+              <path d="M19 12H5m4-4-4 4 4 4"/>
+            </svg>
+            Newer
+          </a>
+        {% else %}
+          <span></span>
+        {% endif %}
+        <span class="text-xs text-neutral-500">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}"
+             class="flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-[#1a1a1a] hover:text-neutral-100 transition-colors text-xs">
+            Older
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+              <path d="M5 12h14m-4 4 4-4m-4-4 4 4"/>
+            </svg>
+          </a>
+        {% else %}
+          <span></span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="rounded-xl border border-[#1e1e1e] p-8 text-center" style="background-color: #111;">
+      <p class="text-sm text-neutral-400">No essays published yet. Be the first to write.</p>
+      {% if not user.is_authenticated %}
+        <a href="{% url 'accounts:register' %}"
+           class="inline-flex items-center gap-1.5 mt-4 text-sm text-neutral-300 hover:text-neutral-100 transition-colors">
+          Join the community
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+            <path d="M5 12h14m-4 4 4-4m-4-4 4 4"/>
+          </svg>
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+
 {% endblock %}
