@@ -25,7 +25,7 @@
           <p class="text-sm text-neutral-400">@{{ profile_user.username }}</p>
         </div>
         {% if user == profile_user %}
-          <a href="{% url 'accounts:profile_edit' %}"
+          <a href="{% url 'accounts:settings_profile' %}"
              class="text-xs border border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:border-neutral-500 px-3 py-1.5 rounded transition-colors shrink-0 mt-0.5">
             Edit profile
           </a>
