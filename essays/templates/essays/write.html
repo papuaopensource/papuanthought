@@ -94,7 +94,7 @@
 
     <div class="flex flex-col gap-1">
       <label for="content" class="text-xs text-neutral-400 uppercase tracking-wider">Content</label>
-      <textarea id="content" name="content" required></textarea>
+      <textarea id="content" name="content"></textarea>
     </div>
 
     <!-- Tag input -->
@@ -194,6 +194,10 @@
     ],
     minHeight: "480px",
     status: ["lines", "words"],
+  });
+
+  document.querySelector('form').addEventListener('submit', function() {
+    easyMDE.codemirror.save();
   });
 </script>
 {% endblock %}
