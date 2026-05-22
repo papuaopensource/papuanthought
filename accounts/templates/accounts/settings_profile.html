@@ -5,6 +5,12 @@
 
 {% block settings_content %}
 
+{% if not user.first_name or not user.last_name or not profile.bio or not profile.location %}
+  <div class="text-sm text-neutral-400 bg-neutral-400/10 border border-neutral-400/20 rounded px-3 py-2.5 mb-6">
+    Please complete your profile — fill in all required fields before you can use the platform.
+  </div>
+{% endif %}
+
 {% if success %}
   <p class="text-sm text-neutral-400 border border-neutral-700 rounded px-3 py-2 mb-6">{{ success }}</p>
 {% endif %}
@@ -32,29 +38,39 @@
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
     <div class="flex flex-col gap-1.5">
-      <label for="first_name" class="text-xs text-neutral-400 uppercase tracking-wider">First name</label>
-      <input id="first_name" name="first_name" type="text" value="{{ user.first_name }}"
+      <label for="first_name" class="flex items-center gap-1 text-xs text-neutral-400 uppercase tracking-wider">
+        First name
+        <span class="text-red-500 normal-case tracking-normal">*</span>
+      </label>
+      <input id="first_name" name="first_name" type="text" value="{{ user.first_name }}" required
         class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 focus:outline-none focus:border-neutral-500 transition-colors" />
     </div>
     <div class="flex flex-col gap-1.5">
-      <label for="last_name" class="text-xs text-neutral-400 uppercase tracking-wider">Last name</label>
-      <input id="last_name" name="last_name" type="text" value="{{ user.last_name }}"
+      <label for="last_name" class="flex items-center gap-1 text-xs text-neutral-400 uppercase tracking-wider">
+        Last name
+        <span class="text-red-500 normal-case tracking-normal">*</span>
+      </label>
+      <input id="last_name" name="last_name" type="text" value="{{ user.last_name }}" required
         class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 focus:outline-none focus:border-neutral-500 transition-colors" />
     </div>
   </div>
 
   <div class="flex flex-col gap-1.5">
-    <label for="bio" class="text-xs text-neutral-400 uppercase tracking-wider">Bio</label>
-    <textarea id="bio" name="bio" rows="3"
+    <label for="bio" class="flex items-center gap-1 text-xs text-neutral-400 uppercase tracking-wider">
+      Bio <span class="text-red-500 normal-case tracking-normal">*</span>
+    </label>
+    <textarea id="bio" name="bio" rows="3" required
       class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-500 transition-colors resize-none leading-relaxed"
       placeholder="A short bio about yourself">{{ profile.bio }}</textarea>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
     <div class="flex flex-col gap-1.5">
-      <label for="location" class="text-xs text-neutral-400 uppercase tracking-wider">Location</label>
+      <label for="location" class="flex items-center gap-1 text-xs text-neutral-400 uppercase tracking-wider">
+        Location <span class="text-red-500 normal-case tracking-normal">*</span>
+      </label>
       <input id="location" name="location" type="text" value="{{ profile.location }}"
-        placeholder="e.g. Jayapura, Papua"
+        placeholder="e.g. Jayapura, Papua" required
         class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-500 transition-colors" />
     </div>
     <div class="flex flex-col gap-1.5">
