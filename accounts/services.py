@@ -121,7 +121,7 @@ def update_profile(user, photo=None, **data) -> "Profile":
             setattr(user, field, data.pop(field))
             user_dirty = True
     if user_dirty:
-        user.save(update_fields=list(USER_FIELDS & set(vars(user))))
+        user.save(update_fields=list(USER_FIELDS))
 
     profile = user.profile
     for key, value in data.items():

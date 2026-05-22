@@ -214,7 +214,8 @@ class SettingsProfileView(LoginRequiredMixin, View):
     template_name = "accounts/settings_profile.html"
 
     def _ctx(self, request, **extra):
-        return {"profile": request.user.profile, "active_section": "profile", **extra}
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        return {"profile": profile, "active_section": "profile", **extra}
 
     def get(self, request):
         return render(request, self.template_name, self._ctx(request))
