@@ -1,11 +1,11 @@
 {% extends "main_layout.html" %}
 
-{% block title %}{{ profile_user.username }} — Papuan Thought{% endblock %}
+{% block title %}{{ profile_user.first_name }} {{ profile_user.last_name }} — Papuan Thought{% endblock %}
 
 {% block content %}
 <div>
   <!-- Profile header -->
-  <div class="flex items-start gap-4 mb-10">
+  <div class="flex items-start gap-4 mb-6">
 
     <!-- Avatar -->
     <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-neutral-800 flex items-center justify-center text-sm sm:text-xl font-semibold text-neutral-200 shrink-0 overflow-hidden">
@@ -115,6 +115,86 @@
     </div>
   </div>
 
+  <!-- Stats -->
+  <div class="flex items-center gap-8 mb-8" x-data="{ followersOpen: false }">
+    <div>
+      <span class="text-sm font-semibold text-neutral-100">{{ essays|length }}</span>
+      <span class="text-sm text-neutral-500 ml-1">essays</span>
+    </div>
+    <div>
+      {% if user == profile_user %}
+        <button @click="followersOpen = true" type="button"
+                class="flex items-baseline gap-1 hover:opacity-70 transition-opacity">
+          <span class="text-sm font-semibold text-neutral-100">{{ follower_count }}</span>
+          <span class="text-sm text-neutral-500">followers</span>
+        </button>
+      {% else %}
+        <span class="text-sm font-semibold text-neutral-100">{{ follower_count }}</span>
+        <span class="text-sm text-neutral-500 ml-1">followers</span>
+      {% endif %}
+    </div>
+    <div>
+      <span class="text-sm font-semibold text-neutral-100">{{ total_likes }}</span>
+      <span class="text-sm text-neutral-500 ml-1">likes</span>
+    </div>
+
+    {% if user == profile_user %}
+    <!-- Followers modal -->
+    <div x-show="followersOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+      <div class="absolute inset-0 bg-black/60" @click="followersOpen = false"></div>
+      <div class="relative z-10 w-full max-w-sm rounded-xl border overflow-hidden"
+           style="background-color: var(--bg-surface); border-color: var(--border-base);">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color: var(--border-base);">
+          <h2 class="text-sm font-semibold text-neutral-100">Followers</h2>
+          <button @click="followersOpen = false" type="button"
+                  class="text-neutral-500 hover:text-neutral-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <!-- Follower list -->
+        <div class="overflow-y-auto max-h-80">
+          {% for follow in followers_list %}
+            <a href="{% url 'accounts:profile' username=follow.follower.username %}"
+               @click="followersOpen = false"
+               class="flex items-center gap-3 px-5 py-3 transition-colors"
+               onmouseenter="this.style.backgroundColor='var(--bg-elevated)'"
+               onmouseleave="this.style.backgroundColor=''">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0 overflow-hidden"
+                   style="background-color: var(--bg-muted);">
+                {% if follow.follower.profile.photo %}
+                  <img src="{{ follow.follower.profile.photo.url }}"
+                       alt="{{ follow.follower.username }}" class="w-full h-full object-cover">
+                {% else %}
+                  {{ follow.follower.first_name|first|upper }}{{ follow.follower.last_name|first|upper }}
+                {% endif %}
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-neutral-200 truncate">
+                  {{ follow.follower.get_full_name|default:follow.follower.username }}
+                </p>
+                <p class="text-xs text-neutral-500 truncate">@{{ follow.follower.username }}</p>
+              </div>
+            </a>
+          {% empty %}
+            <p class="px-5 py-6 text-sm text-neutral-500 text-center">No followers yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
   <!-- Tabs -->
   <div x-data="{ tab: 'essays' }">
     <div class="flex border-b border-neutral-800 mb-8">
@@ -151,7 +231,19 @@
                 {% if essay.excerpt %}
                   <p class="text-sm text-neutral-400 mt-1.5 line-clamp-2 leading-relaxed">{{ essay.excerpt }}</p>
                 {% endif %}
-                <p class="text-xs text-neutral-500 mt-3">{{ essay.published_at|date:"N j, Y" }} · {{ essay.read_time }} min read</p>
+                <!-- <p class="text-xs text-neutral-500 mt-3">{{ essay.published_at|date:"N j, Y" }} • {{ essay.read_time }} min read</p> -->
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="text-xs text-neutral-500">{{ essay.published_at|date:"N j, Y" }}</span>
+                  {% if essay.comments.count %}
+                    <span class="text-neutral-600">•</span>
+                    <span class="flex items-center gap-1 text-xs text-neutral-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      {{ essay.comments.count }}
+                    </span>
+                  {% endif %}
+                </div>
               </a>
             </article>
           {% endfor %}
@@ -205,13 +297,15 @@
                 {% if essay.excerpt %}
                   <p class="text-sm text-neutral-400 mt-1.5 line-clamp-2 leading-relaxed">{{ essay.excerpt }}</p>
                 {% endif %}
-                <div class="flex items-center gap-2 mt-3">
-                  <span class="text-xs text-neutral-500">{{ essay.published_at|date:"N j, Y" }} · {{ essay.read_time }} min read</span>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="text-xs text-neutral-500">{{ essay.published_at|date:"N j, Y" }}</span>
+                  <span class="text-neutral-600">•</span>
+                  <span class="text-xs text-neutral-500">{{ essay.read_time }} min read</span>
                   {% if essay.author != profile_user %}
-                    <span class="text-neutral-600">·</span>
+                    <span class="text-neutral-600">•</span>
                     <a href="{% url 'accounts:profile' username=essay.author.username %}"
                        class="text-xs text-neutral-500 hover:text-neutral-200 transition-colors">
-                      {{ essay.author.username }}
+                      {{ essay.author.first_name }} {{ essay.author.last_name }}
                     </a>
                   {% endif %}
                 </div>

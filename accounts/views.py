@@ -167,6 +167,8 @@ class ProfileView(DetailView):
         context["essays"] = self.object.essays.filter(
             status=EssayModel.PUBLISHED
         ).order_by("-published_at")
+        from interactions.models import Follow, Reaction
+
         if self.request.user == self.object:
             context["draft_essays"] = self.object.essays.filter(
                 status=EssayModel.DRAFT
@@ -179,16 +181,24 @@ class ProfileView(DetailView):
                 .select_related("author", "author__profile")
                 .order_by("-bookmarks__created_at")
             )
+            context["followers_list"] = (
+                Follow.objects.filter(following=self.object)
+                .select_related("follower", "follower__profile")
+                .order_by("-created_at")
+            )
         else:
             context["draft_essays"] = None
             context["bookmarked_essays"] = None
+            context["followers_list"] = None
         context["is_following"] = False
         if self.request.user.is_authenticated and self.request.user != self.object:
-            from interactions.models import Follow
-
             context["is_following"] = Follow.objects.filter(
                 follower=self.request.user, following=self.object
             ).exists()
+        context["follower_count"] = self.object.followers.count()
+        context["total_likes"] = Reaction.objects.filter(
+            essay__author=self.object, reaction_type=Reaction.HEART
+        ).count()
         return context
 
 
