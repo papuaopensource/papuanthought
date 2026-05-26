@@ -43,9 +43,9 @@ jobs:
           else
             cd papuanthought
             # Fetch latest changes
-            git fetch origin master
+            git fetch origin main
             # Reset local changes and ensure latest code is applied
-            git reset --hard origin/master
+            git reset --hard origin/main
           fi
 
     - name: 📦 Install Dependencies and Build Assets
