@@ -1,0 +1,88 @@
+name: 🚀 Publish Website to Production Environment
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  web-deploy:
+    name: 🚀 Deploy Website on Push
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+
+    steps:
+    # deploy server config
+    - name: 🔐 Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: github.com
+
+    - name: 📂 Pull Latest Code on Server   
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: ${{ secrets.SERVER_PORT }}
+        script: |
+          # Menjalankan ssh-agent untuk mengelola kunci SSH
+          # source: https://github.com/appleboy/ssh-action/issues/232#issuecomment-1849260489
+          eval `ssh-agent -s`
+          ssh-add  ~/.ssh/papuathought
+
+          # Pindah ke direktori proyek
+          cd /var/www/
+
+          # Clone repositori privat
+          if [ ! -d "papuathought" ]; then
+            git clone git@github.com:papuaopensource/papuathought.git papuathought
+          else
+            cd papuathought
+            # Fetch latest changes
+            git fetch origin master
+            # Reset local changes and ensure latest code is applied
+            git reset --hard origin/master
+          fi
+
+    - name: 📦 Install Dependencies and Build Assets
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: ${{ secrets.SERVER_PORT }}
+        script: |
+         # Install dependencies and build assets
+         cd /var/www/papuathought
+         
+         # Load nvm and set up Node.js environment
+         export NVM_DIR="$HOME/.nvm"
+         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+         
+         # Ensure uv is available in PATH
+         export PATH="$HOME/.local/bin:$PATH"
+         
+         # Install dependencies
+         uv sync
+         uv run manage.py tailwind install
+         
+         # Build Tailwind CSS
+         uv run manage.py tailwind build
+         
+         # Collect static files
+         uv run manage.py collectstatic --noinput
+          
+    - name: 🧹 Restart Supervisor services for papuathought
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: ${{ secrets.SERVER_PORT }}
+        script: |
+          echo "Restart Supervisor services for papuathought"
+          sudo supervisorctl restart papuathought
