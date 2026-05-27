@@ -5,6 +5,13 @@ from django.shortcuts import render, redirect
 from .models import ContactMessage
 
 
+class LandingView(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect("essays:feed")
+        return render(request, "commons/landing.html")
+
+
 class AboutView(TemplateView):
     template_name = "commons/about.html"
 

@@ -110,7 +110,7 @@ TAILWIND_APP_NAME = "theme"
 
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "essays:feed"
-LOGOUT_REDIRECT_URL = "essays:feed"
+LOGOUT_REDIRECT_URL = "accounts:login"
 
 EMAIL_BACKEND = config(
     "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"

@@ -22,7 +22,7 @@ def _set_tags(essay, tag_names_raw: str) -> None:
     essay.tags.set(tags)
 
 
-class EssayFeedView(ListView):
+class EssayFeedView(LoginRequiredMixin, ListView):
     model = Essay
     template_name = "essays/feed.html"
     context_object_name = "essays"

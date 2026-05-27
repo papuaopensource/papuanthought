@@ -56,9 +56,6 @@
     [data-theme="light"] .hover\:text-neutral-200:hover { color: #1a1a1a; }
     [data-theme="light"] .hover\:text-neutral-300:hover { color: #2a2a2a; }
     [data-theme="light"] .hover\:text-white:hover        { color: #0f0f0f; }
-    [data-theme="light"] .group:hover .group-hover\:text-neutral-100 { color: #0f0f0f; }
-    [data-theme="light"] .group:hover .group-hover\:text-neutral-400 { color: #5a5a5a; }
-    [data-theme="light"] .group:hover .group-hover\:text-white       { color: #0f0f0f; }
 
     /* ── Light: backgrounds ────────────────────────── */
     [data-theme="light"] .bg-neutral-800              { background-color: #ebebeb; }
@@ -79,26 +76,6 @@
     [data-theme="light"] .focus\:border-neutral-500:focus  { border-color: #737373; }
     [data-theme="light"] .focus-within\:border-neutral-500:focus-within { border-color: #737373; }
 
-    /* ── Light: prose ──────────────────────────────── */
-    [data-theme="light"] .prose-invert {
-      --tw-prose-body:          #2a2a2a;
-      --tw-prose-headings:      #1a1a1a;
-      --tw-prose-lead:          #3d3d3d;
-      --tw-prose-links:         #1a1a1a;
-      --tw-prose-bold:          #1a1a1a;
-      --tw-prose-counters:      #5a5a5a;
-      --tw-prose-bullets:       #5a5a5a;
-      --tw-prose-hr:            #e0e0e0;
-      --tw-prose-quotes:        #2a2a2a;
-      --tw-prose-quote-borders: #c8c8c8;
-      --tw-prose-captions:      #5a5a5a;
-      --tw-prose-code:          #2a2a2a;
-      --tw-prose-pre-code:      #2a2a2a;
-      --tw-prose-pre-bg:        #efefef;
-      --tw-prose-th-borders:    #c8c8c8;
-      --tw-prose-td-borders:    #e0e0e0;
-    }
-
     /* ── Light: placeholders ───────────────────────── */
     [data-theme="light"] .placeholder-neutral-700::placeholder { color: #b0b0b0; }
     [data-theme="light"] .placeholder-neutral-500::placeholder { color: #9e9e9e; }
@@ -112,7 +89,6 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body x-data="{
-       sidebarOpen: false,
        theme: document.documentElement.getAttribute('data-theme') || 'dark',
        toggleTheme() {
          this.theme = this.theme === 'dark' ? 'light' : 'dark';
@@ -120,62 +96,45 @@
          localStorage.setItem('theme', this.theme);
        }
      }"
-      class="h-screen flex flex-col overflow-hidden"
       style="background-color: var(--bg-base); color: var(--color-body);">
 
-  <!-- Mobile top bar -->
-  <header class="md:hidden shrink-0 flex items-center justify-between px-4 h-14 border-b"
-          style="background-color: var(--bg-surface); border-color: var(--border-base);">
-    <button @click="sidebarOpen = true"
-            class="text-neutral-400 hover:text-neutral-100 transition-colors p-1.5 -ml-1">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
-    <a href="{% url 'essays:feed' %}" class="text-sm font-semibold text-neutral-200">Papuan Thought</a>
-    <div class="w-8"></div>
+  <!-- Top nav -->
+  <header class="border-b" style="background-color: var(--bg-surface); border-color: var(--border-base);">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
+      <a href="{% url 'commons:landing' %}" class="text-sm font-semibold text-neutral-200 hover:text-white transition-colors">
+        Papuan Thought
+      </a>
+      <div class="flex items-center gap-2">
+        {% if user.is_authenticated %}
+          <a href="{% url 'essays:feed' %}"
+             class="text-xs text-neutral-400 hover:text-neutral-100 px-3 py-1.5 rounded-md hover:bg-(--bg-elevated) transition-colors">
+            Feed
+          </a>
+          <a href="{% url 'accounts:settings_profile' %}"
+             class="text-xs text-neutral-400 hover:text-neutral-100 px-3 py-1.5 rounded-md hover:bg-(--bg-elevated) transition-colors">
+            {{ user.first_name|default:user.username }}
+          </a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}"
+             class="text-xs text-neutral-400 hover:text-neutral-100 px-3 py-1.5 rounded-md hover:bg-(--bg-elevated) transition-colors">
+            Login
+          </a>
+          <a href="{% url 'accounts:register' %}"
+             class="text-xs text-neutral-200 px-3 py-1.5 rounded-md border transition-colors hover:border-neutral-500"
+             style="background-color: var(--bg-elevated); border-color: var(--border-base);">
+            Join
+          </a>
+        {% endif %}
+      </div>
+    </div>
   </header>
 
-  <!-- Layout row -->
-  <div class="flex flex-1 min-h-0">
-
-    <!-- Mobile: backdrop -->
-    <div x-show="sidebarOpen" x-cloak
-         @click="sidebarOpen = false"
-         class="fixed inset-0 z-40 md:hidden bg-black/70"
-         x-transition:enter="transition-opacity ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0">
+  <!-- Content -->
+  <main>
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+      {% block content %}{% endblock %}
     </div>
-
-    <!-- Mobile: slide-over sidebar -->
-    <div class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r overflow-y-auto
-                transition-transform duration-200 ease-in-out md:hidden"
-         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-         style="background-color: var(--bg-surface); border-color: var(--border-base);">
-      {% include "partials/sidebar_left.html" %}
-    </div>
-
-    <!-- Desktop: inline sidebar -->
-    <aside class="hidden md:flex md:w-56 md:shrink-0 md:flex-col border-r overflow-y-auto"
-           style="background-color: var(--bg-surface); border-color: var(--border-base);">
-      {% include "partials/sidebar_left.html" %}
-    </aside>
-
-    <!-- Main content -->
-    <main class="flex-1 overflow-y-auto">
-      <div class="max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
-        {% block content %}{% endblock %}
-      </div>
-    </main>
-
-  </div>
+  </main>
 
 </body>
 </html>

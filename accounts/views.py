@@ -150,7 +150,7 @@ class InvitationAcceptView(View):
 class LogoutView(View):
     def post(self, request):
         logout(request)
-        return redirect("essays:feed")
+        return redirect("accounts:login")
 
 
 class ProfileView(DetailView):
@@ -272,4 +272,4 @@ class SettingsDeleteAccountView(LoginRequiredMixin, View):
             })
         logout(request)
         services.delete_account(request.user)
-        return redirect("essays:feed")
+        return redirect("accounts:login")
