@@ -90,7 +90,15 @@ class InvitationAdmin(ModelAdmin):
     def invitation_link(self, obj):
         path = obj.accept_path
         return format_html(
-            '<code style="font-size:11px;word-break:break-all;user-select:all;">{}</code>',
+            '<div style="display:flex;align-items:center;gap:8px;">'
+            '<code style="font-size:11px;color:#a3a3a3;white-space:nowrap;overflow:hidden;'
+            'text-overflow:ellipsis;max-width:260px;" title="{0}">{0}</code>'
+            '<button type="button"'
+            ' onclick="navigator.clipboard.writeText(window.location.origin+\'{0}\').then(()=>{{this.textContent=\'Copied!\';setTimeout(()=>this.textContent=\'Copy\',1500)}})"'
+            ' style="flex-shrink:0;cursor:pointer;font-size:11px;padding:2px 10px;'
+            'border:1px solid #404040;border-radius:4px;background:transparent;color:#d4d4d4;">'
+            'Copy</button>'
+            '</div>',
             path,
         )
 
