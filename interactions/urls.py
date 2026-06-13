@@ -11,4 +11,5 @@ urlpatterns = [
     path("react/<int:essay_id>/", views.ReactionToggleView.as_view(), name="react"),
     path("follow/<str:username>/", views.FollowToggleView.as_view(), name="follow"),
     path("bookmark/<int:essay_id>/", views.BookmarkToggleView.as_view(), name="bookmark"),
+    path("comment/<int:comment_id>/like/", views.CommentLikeToggleView.as_view(), name="comment_like"),
 ]

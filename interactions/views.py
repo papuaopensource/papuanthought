@@ -6,7 +6,7 @@ from django.views import View
 
 from essays.models import Essay
 from accounts.models import User
-from .models import Comment, Notification
+from .models import Comment, CommentLike, Notification
 from . import services
 
 
@@ -15,11 +15,12 @@ class CommentCreateView(LoginRequiredMixin, View):
         essay = get_object_or_404(Essay, pk=essay_id, status=Essay.PUBLISHED)
         content = request.POST.get("content", "").strip()
         parent_id = request.POST.get("parent_id")
+        quote = request.POST.get("quote", "").strip() or None
         parent = None
         if parent_id:
             parent = get_object_or_404(Comment, pk=parent_id, essay=essay)
         if content:
-            services.add_comment(essay, request.user, content, parent=parent)
+            services.add_comment(essay, request.user, content, parent=parent, quote=quote)
         return redirect("essays:detail", username=essay.author.username, slug=essay.slug)
 
 
@@ -73,6 +74,14 @@ class BookmarkToggleView(LoginRequiredMixin, View):
         essay = get_object_or_404(Essay, pk=essay_id, status=Essay.PUBLISHED)
         result = services.toggle_bookmark(request.user, essay)
         return JsonResponse({"bookmarked": result is not None})
+
+
+class CommentLikeToggleView(LoginRequiredMixin, View):
+    def post(self, request, comment_id):
+        comment = get_object_or_404(Comment, pk=comment_id)
+        result = services.toggle_comment_like(comment, request.user)
+        count = comment.likes.count()
+        return JsonResponse({"liked": result is not None, "count": count})
 
 
 class NotificationListView(LoginRequiredMixin, View):

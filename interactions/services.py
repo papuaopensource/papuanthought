@@ -1,14 +1,15 @@
 from django.core.exceptions import PermissionDenied
 
-from .models import Comment, Reaction, Follow, Bookmark, Notification
+from .models import Comment, CommentLike, Reaction, Follow, Bookmark, Notification
 
 
-def add_comment(essay, author, content: str, parent=None) -> Comment:
+def add_comment(essay, author, content: str, parent=None, quote=None) -> Comment:
     comment = Comment.objects.create(
         essay=essay,
         author=author,
         content=content,
         parent=parent,
+        quote=quote or None,
     )
     if essay.author != author:
         Notification.objects.create(
@@ -24,8 +25,17 @@ def edit_comment(comment: Comment, user, content: str) -> Comment:
     if comment.author != user:
         raise PermissionDenied
     comment.content = content.strip()
-    comment.save(update_fields=["content", "updated_at"])
+    comment.is_edited = True
+    comment.save(update_fields=["content", "is_edited", "updated_at"])
     return comment
+
+
+def toggle_comment_like(comment: Comment, user) -> CommentLike | None:
+    like, created = CommentLike.objects.get_or_create(comment=comment, user=user)
+    if not created:
+        like.delete()
+        return None
+    return like
 
 
 def delete_comment(comment: Comment, user) -> None:
