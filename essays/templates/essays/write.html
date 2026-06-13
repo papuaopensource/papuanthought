@@ -16,9 +16,9 @@
     font-size: 15px;
     line-height: 1.8;
     padding: 16px 20px;
-    min-height: 480px;
+    min-height: 520px;
   }
-  .EasyMDEContainer .CodeMirror-scroll { min-height: 480px; }
+  .EasyMDEContainer .CodeMirror-scroll { min-height: 520px; }
   .EasyMDEContainer .CodeMirror-cursor { border-color: var(--color-body); }
   .EasyMDEContainer .CodeMirror-selected { background: var(--bg-muted); }
   .editor-toolbar {
@@ -64,96 +64,109 @@
 {% endblock %}
 
 {% block content %}
-<div>
-  <h1 class="text-xl font-semibold text-neutral-100 mb-8">New Essay</h1>
+<form id="write-form" method="post" class="flex flex-col gap-0">
+  {% csrf_token %}
+
+  <!-- Sticky top action bar -->
+  <div class="sticky top-0 z-10 grid grid-cols-3 items-center py-3 mb-8 border-b"
+       style="background-color: var(--bg-base); border-color: var(--border-base);">
+    <a href="{% url 'essays:feed' %}"
+       class="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-200 transition-colors justify-self-start">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
+      </svg>
+      Back
+    </a>
+    <span class="text-sm font-medium text-neutral-300 justify-self-center">New Essay</span>
+    <div class="flex items-center gap-2 justify-self-end">
+      <button type="submit" name="action" value="draft"
+              class="text-xs text-neutral-400 border border-neutral-700 rounded px-3 py-1.5 hover:text-neutral-200 hover:border-neutral-500 transition-colors">
+        Save draft
+      </button>
+      <button type="submit" name="action" value="publish"
+              class="text-xs bg-neutral-100 text-neutral-900 font-medium rounded px-3 py-1.5 hover:bg-neutral-200 transition-colors">
+        Publish
+      </button>
+    </div>
+  </div>
 
   {% if error %}
     <p class="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded px-3 py-2 mb-6">{{ error }}</p>
   {% endif %}
 
-  <form method="post" class="flex flex-col gap-5">
-    {% csrf_token %}
+  <!-- Title -->
+  <input
+    id="title" name="title" type="text" required
+    class="font-prose w-full bg-transparent border-b border-neutral-800 pb-4 mb-6 text-2xl font-semibold text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-600 transition-colors"
+    placeholder="Essay title…"
+  />
 
-    <div class="flex flex-col gap-1">
-      <label for="title" class="text-xs text-neutral-400 uppercase tracking-wider">Title</label>
-      <input
-        id="title" name="title" type="text" required
-        class="font-prose bg-transparent border-b border-neutral-700 py-2 text-xl font-semibold text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-500 transition-colors"
-        placeholder="Essay title"
-      />
-    </div>
+  <!-- Excerpt -->
+  <div class="flex flex-col gap-1 mb-6">
+    <label for="excerpt" class="text-xs text-neutral-500 uppercase tracking-wider">
+      Excerpt <span class="text-neutral-700 normal-case">(optional)</span>
+    </label>
+    <input
+      id="excerpt" name="excerpt" type="text"
+      class="bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors"
+      placeholder="Short summary shown in the feed"
+    />
+  </div>
 
-    <div class="flex flex-col gap-1">
-      <label for="excerpt" class="text-xs text-neutral-400 uppercase tracking-wider">Excerpt <span class="text-neutral-700 normal-case">(optional)</span></label>
-      <input
-        id="excerpt" name="excerpt" type="text"
-        class="bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors"
-        placeholder="A short summary shown in the feed"
-      />
-    </div>
+  <!-- Content editor -->
+  <div class="flex flex-col gap-1 mb-6">
+    <label for="content" class="text-xs text-neutral-500 uppercase tracking-wider">Content</label>
+    <textarea id="content" name="content"></textarea>
+  </div>
 
-    <div class="flex flex-col gap-1">
-      <label for="content" class="text-xs text-neutral-400 uppercase tracking-wider">Content</label>
-      <textarea id="content" name="content"></textarea>
-    </div>
-
-    <!-- Tag input -->
-    <div class="flex flex-col gap-1.5"
-      x-data="{
-        tags: [],
-        input: '',
-        addTag() {
-          const name = this.input.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-          if (name && !this.tags.includes(name) && this.tags.length < 10) {
-            this.tags.push(name);
-          }
-          this.input = '';
-        },
-        removeTag(i) { this.tags.splice(i, 1); },
-        onKeydown(e) {
-          if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); this.addTag(); }
-          else if (e.key === 'Backspace' && !this.input && this.tags.length) { this.tags.pop(); }
+  <!-- Tags — below the editor -->
+  <div class="flex flex-col gap-1 mb-2"
+    x-data="{
+      tags: [],
+      input: '',
+      addTag() {
+        const name = this.input.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if (name && !this.tags.includes(name) && this.tags.length < 10) {
+          this.tags.push(name);
         }
-      }"
+        this.input = '';
+      },
+      removeTag(i) { this.tags.splice(i, 1); },
+      onKeydown(e) {
+        if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); this.addTag(); }
+        else if (e.key === 'Backspace' && !this.input && this.tags.length) { this.tags.pop(); }
+      }
+    }"
+  >
+    <label class="text-xs text-neutral-500 uppercase tracking-wider">
+      Tags <span class="text-neutral-700 normal-case">(Enter or , to add · max 10)</span>
+    </label>
+    <div
+      class="flex flex-wrap gap-1.5 min-h-9.5 bg-neutral-800 border border-neutral-700 rounded px-2.5 py-1.5 focus-within:border-neutral-500 transition-colors cursor-text"
+      @click="$refs.tagInput.focus()"
     >
-      <label class="text-xs text-neutral-400 uppercase tracking-wider">
-        Tags <span class="text-neutral-700 normal-case">(Enter or comma to add · max 10)</span>
-      </label>
-
-      <div
-        class="flex flex-wrap gap-1.5 min-h-10 bg-neutral-800 border border-neutral-700 rounded px-2.5 py-2 focus-within:border-neutral-500 transition-colors cursor-text"
-        @click="$refs.tagInput.focus()"
-      >
-        <template x-for="(tag, i) in tags" :key="tag">
-          <span class="flex items-center gap-1 text-xs bg-neutral-700 text-neutral-300 rounded px-2 py-0.5 shrink-0">
-            <span x-text="'#' + tag"></span>
-            <button type="button" @click.stop="removeTag(i)" class="text-neutral-500 hover:text-neutral-100 transition-colors leading-none ml-0.5">×</button>
-          </span>
-        </template>
-        <input
-          x-ref="tagInput"
-          type="text"
-          x-model="input"
-          @keydown="onKeydown($event)"
-          @blur="addTag()"
-          placeholder="add a tag..."
-          class="bg-transparent text-sm text-neutral-300 placeholder-neutral-600 focus:outline-none flex-1 min-w-24 py-0.5"
-        />
-      </div>
-
-      <input type="hidden" name="tag_names" :value="tags.join(',')">
+      <template x-for="(tag, i) in tags" :key="tag">
+        <span class="flex items-center gap-1 text-xs bg-neutral-700 text-neutral-300 rounded px-2 py-0.5 shrink-0 self-center">
+          <span x-text="'#' + tag"></span>
+          <button type="button" @click.stop="removeTag(i)"
+                  class="text-neutral-500 hover:text-neutral-100 transition-colors leading-none ml-0.5">×</button>
+        </span>
+      </template>
+      <input
+        x-ref="tagInput"
+        type="text"
+        x-model="input"
+        @keydown="onKeydown($event)"
+        @blur="addTag()"
+        placeholder="add a tag…"
+        class="bg-transparent text-sm text-neutral-300 placeholder-neutral-600 focus:outline-none flex-1 min-w-20 py-0.5 self-center"
+      />
     </div>
+    <input type="hidden" name="tag_names" :value="tags.join(',')">
+  </div>
 
-    <div class="flex items-center gap-3 pt-2 mt-2">
-      <button type="submit" name="action" value="draft" class="text-sm text-neutral-400 border border-neutral-700 rounded px-4 py-2 hover:text-neutral-200 hover:border-neutral-500 transition-colors">
-        Save draft
-      </button>
-      <button type="submit" name="action" value="publish" class="text-sm bg-neutral-100 text-neutral-900 font-medium rounded px-4 py-2 hover:bg-neutral-200 transition-colors">
-        Publish
-      </button>
-    </div>
-  </form>
-</div>
+</form>
 
 <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
 <script>
@@ -161,7 +174,7 @@
     element: document.getElementById('content'),
     spellChecker: false,
     autofocus: false,
-    placeholder: "Write your essay here...",
+    placeholder: "Write your essay here…",
     toolbar: [
       "bold", "italic", "strikethrough", "|",
       "heading-1", "heading-2", "|",
@@ -192,11 +205,11 @@
       "preview", "side-by-side", "fullscreen", "|",
       "guide"
     ],
-    minHeight: "480px",
+    minHeight: "520px",
     status: ["lines", "words"],
   });
 
-  document.querySelector('form').addEventListener('submit', function() {
+  document.getElementById('write-form').addEventListener('submit', function() {
     easyMDE.codemirror.save();
   });
 </script>
