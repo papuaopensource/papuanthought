@@ -111,10 +111,13 @@ class InvitationAcceptView(View):
 
     def post(self, request, token):
         invitation = self._get_invitation(token)
+        email = request.POST.get("email", "").strip()
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
 
         errors = {}
+        if not email:
+            errors["email"] = "Email is required."
         if not username:
             errors["username"] = "Username is required."
         if not password or len(password) < 8:
@@ -127,12 +130,12 @@ class InvitationAcceptView(View):
                 {
                     "invitation": invitation,
                     "errors": errors,
-                    "form_data": {"username": username},
+                    "form_data": {"email": email, "username": username},
                 },
             )
 
         try:
-            user = services.accept_invitation(str(token), username, password)
+            user = services.accept_invitation(str(token), email, username, password)
             login(request, user, backend="accounts.backends.EmailOrUsernameBackend")
             return redirect("essays:feed")
         except ValueError as e:
@@ -142,7 +145,7 @@ class InvitationAcceptView(View):
                 {
                     "invitation": invitation,
                     "error": str(e),
-                    "form_data": {"username": username},
+                    "form_data": {"email": email, "username": username},
                 },
             )
 

@@ -1,11 +1,11 @@
 {% extends "base_layout.html" %}
 
-{% block title %}Accept Invitation — Papuan Thought{% endblock %}
+{% block title %}Join Papuan Thought{% endblock %}
 
 {% block content %}
 <div class="mt-4">
   <h1 class="text-2xl font-semibold text-neutral-100 mb-1">Create your account</h1>
-  <p class="text-sm text-neutral-500 mb-8">You've been invited to join Papuan Thought. Complete the form below to create your account.</p>
+  <p class="text-sm text-neutral-500 mb-8">You've been invited to join Papuan Thought. Fill in your details below to get started.</p>
 
   {% if error %}
     <p class="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded px-3 py-2 mb-6">{{ error }}</p>
@@ -13,27 +13,39 @@
 
   <form method="post" class="flex flex-col gap-4">
     {% csrf_token %}
+
     <div class="flex flex-col gap-1">
-      <label class="text-xs text-neutral-400 uppercase tracking-wider">Email</label>
-      <p class="text-sm text-neutral-500 px-3 py-2 bg-neutral-800/50 border border-neutral-800 rounded">{{ invitation.email }}</p>
+      <label for="email" class="text-xs text-neutral-400 uppercase tracking-wider">Email</label>
+      <input
+        id="email" name="email" type="email" required autocomplete="email"
+        value="{{ form_data.email|default:'' }}"
+        class="bg-neutral-800 border {% if errors.email %}border-red-500{% else %}border-neutral-700{% endif %} rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors"
+        placeholder="you@example.com"
+      />
+      {% if errors.email %}<p class="text-xs text-red-400">{{ errors.email }}</p>{% endif %}
     </div>
+
     <div class="flex flex-col gap-1">
       <label for="username" class="text-xs text-neutral-400 uppercase tracking-wider">Username</label>
       <input
         id="username" name="username" type="text" required autocomplete="username"
         value="{{ form_data.username|default:'' }}"
         class="bg-neutral-800 border {% if errors.username %}border-red-500{% else %}border-neutral-700{% endif %} rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors"
+        placeholder="yourname"
       />
       {% if errors.username %}<p class="text-xs text-red-400">{{ errors.username }}</p>{% endif %}
     </div>
+
     <div class="flex flex-col gap-1">
       <label for="password" class="text-xs text-neutral-400 uppercase tracking-wider">Password</label>
       <input
         id="password" name="password" type="password" required autocomplete="new-password"
         class="bg-neutral-800 border {% if errors.password %}border-red-500{% else %}border-neutral-700{% endif %} rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition-colors"
+        placeholder="At least 8 characters"
       />
       {% if errors.password %}<p class="text-xs text-red-400">{{ errors.password }}</p>{% endif %}
     </div>
+
     <button type="submit" class="bg-neutral-100 text-neutral-900 font-medium text-sm rounded px-4 py-2 hover:bg-neutral-200 transition-colors mt-2">
       Create account
     </button>

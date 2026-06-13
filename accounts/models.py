@@ -35,8 +35,12 @@ class Profile(models.Model):
 
 
 class Invitation(models.Model):
-    email = models.EmailField(unique=True)
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    note = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Optional internal label, e.g. 'for John from Twitter'.",
+    )
     invited_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -53,5 +57,10 @@ class Invitation(models.Model):
     def is_used(self):
         return self.used_at is not None
 
+    @property
+    def accept_path(self):
+        from django.urls import reverse
+        return reverse("accounts:invitation_accept", kwargs={"token": self.token})
+
     def __str__(self):
-        return f"Invitation for {self.email}"
+        return self.note or str(self.token)

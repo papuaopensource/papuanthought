@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.utils.html import format_html
 from unfold.admin import ModelAdmin
 from unfold.contrib.inlines.admin import StackedInline
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
@@ -71,22 +72,29 @@ class ProfileAdmin(ModelAdmin):
 
 @admin.register(Invitation)
 class InvitationAdmin(ModelAdmin):
-    list_display = ("email", "invited_by", "created_at", "is_used_display")
-    readonly_fields = ("token", "created_at", "used_at", "invited_by")
-    search_fields = ("email",)
+    list_display = ("note_or_token", "invited_by", "created_at", "is_used_display", "invitation_link")
+    readonly_fields = ("invitation_link", "token", "invited_by", "created_at", "used_at")
+    fields = ("note", "invitation_link", "token", "invited_by", "created_at", "used_at")
+    search_fields = ("note",)
 
+    @admin.display(description="Note / Token")
+    def note_or_token(self, obj):
+        return obj.note or str(obj.token)[:8] + "…"
+
+    @admin.display(description="Used")
     def is_used_display(self, obj):
         return obj.is_used
     is_used_display.boolean = True
-    is_used_display.short_description = "Used"
+
+    @admin.display(description="Invite Link")
+    def invitation_link(self, obj):
+        path = obj.accept_path
+        return format_html(
+            '<code style="font-size:11px;word-break:break-all;user-select:all;">{}</code>',
+            path,
+        )
 
     def save_model(self, request, obj, form, change):
         if not change:
             obj.invited_by = request.user
-            super().save_model(request, obj, form, change)
-            try:
-                services.create_invitation(obj.email, request.user, request)
-            except ValueError as e:
-                self.message_user(request, str(e), messages.ERROR)
-        else:
-            super().save_model(request, obj, form, change)
+        super().save_model(request, obj, form, change)

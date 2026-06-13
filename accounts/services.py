@@ -51,37 +51,7 @@ def approve_user(user: User, request=None) -> User:
     return user
 
 
-def create_invitation(email: str, invited_by: User, request) -> "Invitation":
-    from .models import Invitation
-    if User.objects.filter(email=email).exists():
-        raise ValueError("This email is already registered as an account.")
-    invitation, created = Invitation.objects.get_or_create(
-        email=email,
-        defaults={"invited_by": invited_by},
-    )
-    if not created and invitation.is_used:
-        raise ValueError("The invitation for this email has already been used.")
-    accept_url = request.build_absolute_uri(
-        reverse("accounts:invitation_accept", kwargs={"token": invitation.token})
-    )
-    send_mail(
-        subject="You're invited to join Papuan Thought",
-        message=(
-            f"Hi,\n\n"
-            f"You've been invited by {invited_by.username} to join Papuan Thought, "
-            "a community writing platform for Papuans.\n\n"
-            f"Click the link below to create your account:\n{accept_url}\n\n"
-            "This link can only be used once.\n\n"
-            "— The Papuan Thought Team"
-        ),
-        from_email=None,
-        recipient_list=[email],
-        fail_silently=False,
-    )
-    return invitation
-
-
-def accept_invitation(token: str, username: str, password: str) -> User:
+def accept_invitation(token: str, email: str, username: str, password: str) -> User:
     from .models import Invitation
     try:
         invitation = Invitation.objects.get(token=token, used_at__isnull=True)
@@ -89,14 +59,35 @@ def accept_invitation(token: str, username: str, password: str) -> User:
         raise ValueError("This invitation link is invalid or has already been used.")
     if User.objects.filter(username=username).exists():
         raise ValueError("Username is already taken.")
-    if User.objects.filter(email=invitation.email).exists():
+    if User.objects.filter(email=email).exists():
         raise ValueError("This email is already registered.")
     user = User.objects.create_user(
-        username=username, email=invitation.email, password=password, is_active=True
+        username=username, email=email, password=password, is_active=True
     )
     invitation.used_at = timezone.now()
     invitation.save(update_fields=["used_at"])
+    send_welcome_email(user)
     return user
+
+
+def send_welcome_email(user: User) -> None:
+    send_mail(
+        subject="Welcome to Papuan Thought",
+        message=(
+            f"Hi {user.first_name or user.username},\n\n"
+            "Welcome to Papuan Thought — we're really glad you're here.\n\n"
+            "You're now part of a community of writers and thinkers sharing ideas "
+            "from Papua and beyond. Here are a few things you can do to get started:\n\n"
+            f"  • Complete your profile: /accounts/profile/{user.username}/\n"
+            f"  • Write your first essay: /essays/write/\n"
+            f"  • Explore what others have written: /\n\n"
+            "We look forward to reading your voice.\n\n"
+            "— The Papuan Thought Team"
+        ),
+        from_email=None,
+        recipient_list=[user.email],
+        fail_silently=True,
+    )
 
 
 def change_password(user, old_password: str, new_password: str) -> bool:
