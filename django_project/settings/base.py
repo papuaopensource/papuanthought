@@ -115,16 +115,20 @@ LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "essays:feed"
 LOGOUT_REDIRECT_URL = "accounts:login"
 
-EMAIL_BACKEND = config(
-    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
-)
+# SMTP connection details are shared by development and production. Tests use
+# Django's in-memory backend automatically, so they never contact this server.
+# ── Email ─────────────────────────────────────────────
 EMAIL_HOST = config("EMAIL_HOST", default="localhost")
-EMAIL_PORT = config("EMAIL_PORT", default=25, cast=int)
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=False, cast=bool)
-EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=False, cast=bool)
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@papuanthought.com")
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL",
+    default=EMAIL_HOST_USER or "noreply@papuanthought.com",
+)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_USE_SSL = False
+EMAIL_TIMEOUT = 15
 
 UNFOLD = {
     "SITE_TITLE": "The Papuan Thought Project",
