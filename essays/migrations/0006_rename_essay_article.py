@@ -6,6 +6,9 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("essays", "0005_essay_kind_alter_essay_title"),
+        # Rename only after the interactions migrations that create foreign keys
+        # to "essays.essay" (0001-0004); later ones point at "essays.article".
+        ("interactions", "0004_comment_is_edited_and_commentlike"),
     ]
 
     operations = [
