@@ -1,19 +1,36 @@
-import re
-import markdown
 from django import template
+from django.utils import dateformat, timezone
 from django.utils.safestring import mark_safe
 
-register = template.Library()
+from essays.text import markdown_to_text, render_markdown_safe
 
-# Python-Markdown parses `> text\n---` as a Setext h2 instead of blockquote + hr.
-# Insert a blank line before any --- / === that immediately follows a blockquote line.
-_SETEXT_AFTER_QUOTE = re.compile(r'^(>.+)\n([-=]{3,}\s*)$', re.MULTILINE)
+register = template.Library()
 
 
 @register.filter
 def render_markdown(value):
+    """Article body: sanitized Markdown, images allowed (own uploads only)."""
+    return mark_safe(render_markdown_safe(value, allow_images=True))
+
+
+@register.filter
+def render_note(value):
+    """Note body: sanitized Markdown, no images (notes are text-only)."""
+    return mark_safe(render_markdown_safe(value, allow_images=False))
+
+
+@register.filter
+def plain_text(value):
+    """Markdown source → plain text, for previews of essays without a subtitle."""
+    return markdown_to_text(value)
+
+
+@register.filter
+def short_date(value):
+    """'Oct 31' for dates this year, 'Oct 31, 2024' otherwise."""
     if not value:
-        return mark_safe("")
-    content = _SETEXT_AFTER_QUOTE.sub(r'\1\n\n\2', value)
-    md = markdown.Markdown(extensions=["extra", "nl2br", "sane_lists"])
-    return mark_safe(md.convert(content))
+        return ""
+    if timezone.is_aware(value):
+        value = timezone.localtime(value)
+    fmt = "M j" if value.year == timezone.localtime().year else "M j, Y"
+    return dateformat.format(value, fmt)

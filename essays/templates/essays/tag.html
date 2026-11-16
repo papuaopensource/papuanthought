@@ -1,34 +1,19 @@
 {% extends "main_layout.html" %}
 
-{% block title %}#{{ tag.name }} — Papuan Thought{% endblock %}
+{% block title %}#{{ tag.name }} - Papuan Thought{% endblock %}
 
 {% block content %}
-<div>
-  <p class="text-xs uppercase tracking-widest text-neutral-400 mb-2">Tag</p>
-  <h1 class="text-2xl font-semibold text-neutral-100 mb-8">#{{ tag.name }}</h1>
+<header class="border-b border-line pb-5">
+  <p class="text-[13px] font-medium text-muted">Tag</p>
+  <h1 class="mt-1 text-[28px] leading-tight font-bold tracking-tight text-fg"><span class="text-accent">#</span>{{ tag.name }}</h1>
+  <p class="mt-1 text-sm text-muted">{{ essays|length }} article{{ essays|length|pluralize }}</p>
+</header>
 
-  {% if essays %}
-    <div class="flex flex-col divide-y divide-neutral-800">
-      {% for essay in essays %}
-        <article class="py-6 first:pt-0">
-          <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}" class="group block">
-            <h2 class="font-prose text-base font-medium text-neutral-100 group-hover:text-neutral-300 transition-colors">{{ essay.title }}</h2>
-            {% if essay.excerpt %}
-              <p class="text-sm text-neutral-400 mt-1.5 line-clamp-2">{{ essay.excerpt }}</p>
-            {% endif %}
-          </a>
-          <div class="flex items-center gap-2 mt-3 text-sm text-neutral-400">
-            <a href="{% url 'accounts:profile' username=essay.author.username %}" class="hover:text-neutral-400 transition-colors">{{ essay.author.first_name }} {{ essay.author.last_name }}</a>
-            <span>•</span>
-            <span>{{ essay.published_at|date:"N j, Y" }}</span>
-            <span>•</span>
-            <span>{{ essay.read_time }} min read</span>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="text-sm text-neutral-400">No essays tagged with #{{ tag.name }} yet.</p>
-  {% endif %}
-</div>
+<section aria-label="Articles">
+  {% for essay in essays %}
+    {% include "essays/partials/essay_card.html" %}
+  {% empty %}
+    <p class="py-16 text-center text-sm text-muted">No articles tagged with #{{ tag.name }} yet.</p>
+  {% endfor %}
+</section>
 {% endblock %}

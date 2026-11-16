@@ -1,0 +1,68 @@
+{% load essay_filters %}
+{% comment %}
+One comment in a thread.
+Params: c (comment, annotated with like_count), thread (top-level comment), line (bool: draw the
+thread line down to the next item), is_reply (bool).
+Lives inside the essayPage component (openDelete) and the thread's x-data (replyOpen).
+{% endcomment %}
+<div id="comment-{{ c.pk }}" class="flex gap-3 scroll-mt-20"
+     x-data="commentLike({ liked: {% if c.pk in liked_comment_ids %}true{% else %}false{% endif %}, likes: {{ c.like_count|default:0 }}, url: '{% url 'interactions:comment_like' comment_id=c.pk %}' })">
+
+  <!-- Avatar + thread line -->
+  <div class="flex w-9 shrink-0 flex-col items-center">
+    <a href="{% url 'accounts:profile' username=c.author.username %}" tabindex="-1" aria-hidden="true">
+      {% include "partials/avatar.html" with u=c.author size="size-9 text-xs" %}
+    </a>
+    {% if line %}<span class="mt-2 w-0.5 flex-1 rounded-full bg-line"></span>{% endif %}
+  </div>
+
+  <div class="min-w-0 flex-1 {% if line %}pb-6{% endif %}">
+    <!-- Byline -->
+    <div class="flex items-center gap-2">
+      <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 leading-5">
+        <a href="{% url 'accounts:profile' username=c.author.username %}" class="truncate text-[15px] font-semibold text-fg hover:underline">{{ c.author.get_full_name|default:c.author.username }}</a>
+        {% if c.author_id == essay.author_id %}<span class="badge">Author</span>{% endif %}
+        <span class="text-sm text-muted">{{ c.created_at|short_date }}{% if c.is_edited %} · edited{% endif %}</span>
+      </div>
+      <div class="relative" x-data="{ open: false }" @keydown.escape="open = false">
+        <button type="button" @click="open = !open" class="icon-btn -my-1 size-7" aria-label="Comment options">
+          {% include "partials/icon.html" with name="more" size=18 stroke="2.4" %}
+        </button>
+        <div x-show="open" x-cloak @click.outside="open = false" x-transition.opacity.duration.100ms class="menu top-full right-0 mt-1 w-48">
+          {% if user == c.author %}
+            <a href="{% url 'interactions:comment_edit' comment_id=c.pk %}" class="menu-item">{% include "partials/icon.html" with name="edit" size=16 cls="text-muted" %} Edit</a>
+            <button type="button" @click="open = false; openDelete('{% url 'interactions:comment_delete' comment_id=c.pk %}')" class="menu-item text-danger">{% include "partials/icon.html" with name="trash" size=16 %} Delete</button>
+          {% else %}
+            <button type="button"
+                    @click="open = false; $dispatch('open-report', { key: 'comment', url: '{% url 'interactions:report_comment' comment_id=c.pk %}', subject: '{{ c.author.get_full_name|default:c.author.username|escapejs }}: “{{ c.content|truncatechars:90|escapejs }}”' })"
+                    class="menu-item text-danger">{% include "partials/icon.html" with name="flag" size=16 %} Report comment</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Quoted passage: jumps to it in the essay -->
+    {% if c.quote %}
+      <button type="button" data-quote="{{ c.quote }}" @click="scrollToQuote($el.dataset.quote)" title="Show in essay"
+              class="mt-2 block w-full cursor-pointer border-l-2 border-accent pl-3 text-left text-sm text-muted italic transition-colors hover:text-fg">
+        <span class="line-clamp-3">{{ c.quote }}</span>
+      </button>
+    {% endif %}
+
+    <p class="mt-1 text-[15px] leading-relaxed break-words whitespace-pre-line text-fg">{{ c.content }}</p>
+
+    <!-- Actions -->
+    <div class="mt-2.5 flex items-center gap-5">
+      <button type="button" @click="toggleLike()" class="action{% if c.pk in liked_comment_ids %} is-active{% endif %}"
+              :class="{ 'is-active': liked }" :aria-pressed="liked.toString()" aria-label="Like comment">
+        {% include "partials/icon.html" with name="heart" size=17 %}
+        <span x-text="likes || ''">{% if c.like_count %}{{ c.like_count }}{% endif %}</span>
+      </button>
+      <button type="button" class="action" aria-label="Reply"
+              @click="replyOpen = true; $nextTick(() => document.getElementById('reply-{{ thread.pk }}')?.focus())">
+        {% include "partials/icon.html" with name="comment" size=17 %}
+        {% if not is_reply %}{% with n=thread.replies.all|length %}<span>{% if n %}{{ n }}{% endif %}</span>{% endwith %}{% endif %}
+      </button>
+    </div>
+  </div>
+</div>

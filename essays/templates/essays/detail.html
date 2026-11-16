@@ -1,564 +1,276 @@
 {% extends "main_layout.html" %}
 {% load essay_filters %}
 
-{% block title %}{{ essay.title }} — Papuan Thought{% endblock %}
-{% block description %}{% if essay.excerpt %}{{ essay.excerpt }}{% endif %}{% endblock %}
+{% block title %}{{ essay.display_title }} - Papuan Thought{% endblock %}
+{% block description %}{% if essay.excerpt %}{{ essay.excerpt }}{% else %}{{ essay.content|plain_text|truncatewords:30 }}{% endif %}{% endblock %}
 
-{% block content %}
-<script>window.__CSRF__ = '{{ csrf_token }}';</script>
-<script>
-function scrollToQuote(text) {
-  if (!text) return;
-  const essayBody = document.getElementById('essay-body');
-  if (!essayBody) return;
-  const needle = text.trim().substring(0, 80).toLowerCase();
-  const candidates = essayBody.querySelectorAll('p, li, blockquote, h1, h2, h3, h4, h5, h6');
-  for (const el of candidates) {
-    if (el.textContent.toLowerCase().includes(needle)) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.style.transition = 'background-color 0.4s ease';
-      el.style.backgroundColor = 'rgba(251, 191, 36, 0.12)';
-      setTimeout(() => { el.style.backgroundColor = ''; }, 2400);
-      return;
-    }
-  }
-  essayBody.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-</script>
-
-<div
-  x-data="{
-    hearted: {{ is_hearted|yesno:'true,false' }},
-    bookmarked: {{ is_bookmarked|yesno:'true,false' }},
-    heartCount: {{ heart_count }},
-    bookmarkCount: {{ bookmark_count }},
-    toast: '',
-    toastVisible: false,
-    confirmDelete: false,
-    deleteTarget: '',
-    quoteText: '',
-    quotePopoverShow: false,
-    popoverX: 0,
-    popoverY: 0,
-    showToast(msg) {
-      this.toast = msg;
-      this.toastVisible = true;
-      setTimeout(() => { this.toastVisible = false; }, 2500);
-    },
-    async toggleHeart() {
-      const res = await fetch('{% url "interactions:react" essay_id=essay.pk %}', {
-        method: 'POST',
-        headers: { 'X-CSRFToken': window.__CSRF__, 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'reaction_type=heart'
-      });
-      const data = await res.json();
-      this.heartCount += data.reacted ? 1 : -1;
-      this.hearted = data.reacted;
-      this.showToast(data.reacted ? 'Loved' : 'Removed');
-    },
-    async toggleBookmark() {
-      const res = await fetch('{% url "interactions:bookmark" essay_id=essay.pk %}', {
-        method: 'POST',
-        headers: { 'X-CSRFToken': window.__CSRF__ }
-      });
-      const data = await res.json();
-      this.bookmarkCount += data.bookmarked ? 1 : -1;
-      this.bookmarked = data.bookmarked;
-      this.showToast(data.bookmarked ? 'Saved' : 'Removed');
-    },
-    openDelete(url) {
-      this.deleteTarget = url;
-      this.confirmDelete = true;
-    },
-    confirmEssayDelete: false
-  }"
-  x-init="
-    (() => {
-      const essayBody = document.getElementById('essay-body');
-      if (!essayBody) return;
-      const d = $data;
-      essayBody.addEventListener('mouseup', () => {
-        const sel = window.getSelection();
-        const text = sel ? sel.toString().trim() : '';
-        if (text && essayBody.contains(sel.anchorNode)) {
-          const range = sel.getRangeAt(0);
-          const rect = range.getBoundingClientRect();
-          d.quoteText = text;
-          d.popoverX = rect.left + rect.width / 2;
-          d.popoverY = Math.max(8, rect.top - 52);
-          d.quotePopoverShow = true;
-        } else {
-          d.quotePopoverShow = false;
-        }
-      });
-      document.addEventListener('mousedown', (e) => {
-        const popover = document.getElementById('quote-popover');
-        if (popover && !popover.contains(e.target)) {
-          d.quotePopoverShow = false;
-        }
-      });
-    })()
-  "
->
-
-  <!-- Essay header -->
-  <header class="mb-10">
-    <div class="flex items-start justify-between gap-4 mb-4">
-      <h1 class="font-prose text-3xl font-bold text-neutral-100 leading-tight">{{ essay.title }}</h1>
-      {% if user == essay.author %}
-        <div class="flex items-center gap-2 shrink-0 mt-1">
-          <a href="{% url 'essays:edit' username=essay.author.username slug=essay.slug %}"
-             class="text-xs border border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:border-neutral-500 px-3 py-1.5 rounded transition-colors">Edit</a>
-          <button type="button" @click="confirmEssayDelete = true"
-                  class="text-xs border border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:border-neutral-500 px-3 py-1.5 rounded transition-colors">
-            Delete
-          </button>
-        </div>
-      {% endif %}
-    </div>
-    <div class="flex items-center gap-3 flex-wrap">
-      <a href="{% url 'accounts:profile' username=essay.author.username %}" class="flex items-center gap-2 group">
-        <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-medium text-neutral-200 overflow-hidden">
-          {% if essay.author.profile.photo %}
-            <img src="{{ essay.author.profile.photo.url }}" alt="{{ essay.author.username }}" class="w-full h-full object-cover" />
-          {% else %}
-            {{ essay.author.first_name|first|upper }}{{ essay.author.last_name|first|upper }}
-          {% endif %}
-        </div>
-        <span class="text-sm text-neutral-300 group-hover:text-neutral-100 transition-colors">{{ essay.author.first_name }} {{ essay.author.last_name }}</span>
+{% block sidebar_top %}
+  <!-- About the author -->
+  <section class="card p-4">
+    <h2 class="card-title">Author</h2>
+    <div class="mt-3 flex items-center gap-3">
+      <a href="{% url 'accounts:profile' username=essay.author.username %}" class="flex min-w-0 flex-1 items-center gap-3">
+        {% include "partials/avatar.html" with u=essay.author size="size-11 text-sm" %}
+        <span class="min-w-0">
+          <span class="block truncate text-[15px] font-semibold text-fg hover:underline">{{ essay.author.get_full_name|default:essay.author.username }}</span>
+          <span class="block truncate text-[13px] text-muted">@{{ essay.author.username }}</span>
+        </span>
       </a>
-      <span class="text-neutral-500">•</span>
-      <span class="text-sm text-neutral-400">{{ essay.published_at|date:"N j, Y" }}</span>
-      <span class="text-neutral-500">•</span>
-      <span class="text-sm text-neutral-400">{{ essay.read_time }} min read</span>
-      {% if essay.is_edited %}
-        <span class="text-neutral-500">•</span>
-        <span class="text-sm text-neutral-500">edited</span>
-      {% endif %}
+      {% include "partials/follow_button.html" with target=essay.author variant="soft" %}
     </div>
-    {% if essay.tags.all %}
-      <div class="flex flex-wrap gap-2 mt-4">
-        {% for tag in essay.tags.all %}
-          <a href="{% url 'essays:tag' slug=tag.slug %}" class="text-base text-neutral-400 hover:text-neutral-100 transition-colors">#{{ tag.name }}</a>
-        {% endfor %}
-      </div>
-    {% endif %}
-  </header>
-
-  <!-- Essay content -->
-  <div id="essay-body" class="font-prose prose prose-neutral prose-invert max-w-none text-neutral-300 text-[17px] leading-[1.85]">
-    {{ essay.content|render_markdown }}
-  </div>
-
-  <!-- Author stats -->
-  {% if user == essay.author %}
-    <div class="flex items-center gap-4 mt-10 pt-8 border-t border-neutral-800">
-      <span class="text-sm text-neutral-400">
-        <span class="text-neutral-200 font-medium">{{ essay.view_count }}</span> views
-      </span>
-      <span class="text-sm text-neutral-400">
-        <span class="text-neutral-200 font-medium" x-text="heartCount">{{ heart_count }}</span> loves
-      </span>
-      <span class="text-sm text-neutral-400">
-        <span class="text-neutral-200 font-medium" x-text="bookmarkCount">{{ bookmark_count }}</span> saves
-      </span>
-    </div>
-  {% endif %}
-
-  <!-- Reactions -->
-  <div class="flex items-center gap-1 {% if user == essay.author %}mt-4{% else %}mt-10 pt-8 border-t border-neutral-800{% endif %}">
-    {% if user.is_authenticated %}
-      <button @click="toggleHeart()" type="button"
-        class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded hover:bg-neutral-800 transition-colors"
-        :class="hearted ? 'text-red-400' : 'text-neutral-400 hover:text-neutral-100'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-             :fill="hearted ? 'currentColor' : 'none'"
-             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-        </svg>
-        <span x-text="(hearted ? 'Loved' : 'Love') + (heartCount > 0 ? ' · ' + heartCount : '')"></span>
-      </button>
-
-      <button @click="toggleBookmark()" type="button"
-        class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded hover:bg-neutral-800 transition-colors"
-        :class="bookmarked ? 'text-amber-400' : 'text-neutral-400 hover:text-neutral-100'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-             :fill="bookmarked ? 'currentColor' : 'none'"
-             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
-        </svg>
-        <span x-text="(bookmarked ? 'Saved' : 'Save') + (bookmarkCount > 0 ? ' · ' + bookmarkCount : '')"></span>
-      </button>
-    {% else %}
-      <span class="flex items-center gap-1.5 text-sm text-neutral-600 px-3 py-1.5">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-        </svg>
-        {% if heart_count %}{{ heart_count }}{% endif %}
-      </span>
-      <span class="flex items-center gap-1.5 text-sm text-neutral-600 px-3 py-1.5">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
-        </svg>
-        {% if bookmark_count %}{{ bookmark_count }}{% endif %}
-      </span>
-      <span class="text-neutral-700 text-sm px-1">·</span>
-      <a href="{% url 'accounts:login' %}?next={{ request.path }}"
-         class="text-sm text-neutral-500 hover:text-neutral-200 px-3 py-1.5 rounded hover:bg-neutral-800 transition-colors">
-        Sign in to react
-      </a>
-    {% endif %}
-  </div>
-
-  <!-- Share -->
-  <div class="flex flex-col items-start gap-2 mt-2 pt-4 border-t border-neutral-800/60 sm:flex-row sm:items-center">
-    <span class="text-xs text-neutral-600 shrink-0">Share</span>
-    <div class="flex items-center">
-      <a href="#"
-       @click.prevent="window.open('https://wa.me/?text='+encodeURIComponent('{{ essay.title|escapejs }}'+' '+window.location.href),'_blank')"
-       class="flex items-center gap-1.5 text-xs pr-3 py-1.5 rounded hover:bg-neutral-800 text-neutral-400 hover:text-neutral-100 transition-colors sm:pl-3">
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-      </svg>
-        WhatsApp
-      </a>
-      <a href="#"
-        @click.prevent="window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent('{{ essay.title|escapejs }}')+'&url='+encodeURIComponent(window.location.href),'_blank')"
-        class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded hover:bg-neutral-800 text-neutral-400 hover:text-neutral-100 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-        </svg>
-        Twitter
-      </a>
-      <button type="button"
-        @click="navigator.clipboard.writeText(window.location.href); showToast('Link copied')"
-        class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded hover:bg-neutral-800 text-neutral-400 hover:text-neutral-100 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-        </svg>
-        Copy link
-      </button>
-    </div>
-  </div>
-
-  <!-- Comments -->
-  {% if user.is_authenticated %}
-  <section class="mt-12">
-
-    <!-- Section header + sort filter -->
-    <div class="flex items-center gap-3 mb-6">
-      <h2 class="text-xs uppercase tracking-widest text-neutral-400">Discussion</h2>
-      <div class="flex items-center gap-1 ml-auto">
-        <a href="?sort=popular"
-           class="text-xs px-2.5 py-1 rounded transition-colors {% if sort == 'popular' %}bg-neutral-700 text-neutral-200{% else %}text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800{% endif %}">
-          Popular
-        </a>
-        <a href="?sort=latest"
-           class="text-xs px-2.5 py-1 rounded transition-colors {% if sort == 'latest' %}bg-neutral-700 text-neutral-200{% else %}text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800{% endif %}">
-          Latest
-        </a>
-      </div>
-    </div>
-
-    <!-- Comment form -->
-    <form id="comment-form" method="post" action="{% url 'interactions:comment' essay_id=essay.pk %}" class="mb-8">
-      {% csrf_token %}
-      <input type="hidden" name="quote" :value="quoteText">
-      <div x-show="quoteText" x-cloak class="mb-3 flex items-start gap-2">
-        <blockquote class="flex-1 border-l-2 border-neutral-600 pl-3 text-sm text-neutral-400 italic line-clamp-3" x-text="quoteText"></blockquote>
-        <button type="button" @click="quoteText = ''" class="shrink-0 text-neutral-600 hover:text-neutral-400 transition-colors mt-0.5" aria-label="Remove quote">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <textarea
-        id="main-comment-textarea"
-        name="content"
-        rows="3"
-        placeholder="Share your thoughts..."
-        class="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-500 transition-colors resize-none"
-      ></textarea>
-      <button type="submit" class="mt-2 text-xs bg-neutral-700 text-neutral-300 hover:bg-neutral-600 px-3 py-1.5 rounded transition-colors">
-        Post comment
-      </button>
-    </form>
-
-    {% if comments %}
-      <div class="flex flex-col gap-6">
-        {% for comment in comments %}
-          <div
-            x-data="{
-              replyOpen: false,
-              repliesOpen: false,
-              liked: {% if comment.pk in liked_comment_ids %}true{% else %}false{% endif %},
-              likeCount: {{ comment.like_count }},
-              async toggleLike() {
-                const res = await fetch('{% url 'interactions:comment_like' comment_id=comment.pk %}', {
-                  method: 'POST', headers: { 'X-CSRFToken': window.__CSRF__ }
-                });
-                const data = await res.json();
-                this.liked = data.liked;
-                this.likeCount = data.count;
-              }
-            }"
-            class="flex gap-3"
-          >
-            <!-- Avatar -->
-            <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-sm font-medium text-neutral-200 shrink-0 overflow-hidden">
-              {% if comment.author.profile.photo %}
-                <img src="{{ comment.author.profile.photo.url }}" alt="{{ comment.author.username }}" class="w-full h-full object-cover" />
-              {% else %}
-                {{ comment.author.first_name|first|upper }}{{ comment.author.last_name|first|upper }}
-              {% endif %}
-            </div>
-
-            <div class="flex-1 min-w-0">
-              <!-- Meta row -->
-              <div class="flex items-center gap-2 mb-1 flex-wrap">
-                <a href="{% url 'accounts:profile' username=comment.author.username %}" class="text-sm font-medium text-neutral-200 hover:text-white transition-colors">{{ comment.author.first_name }} {{ comment.author.last_name }}</a>
-                {% if user == comment.author %}
-                  <span class="text-xs bg-neutral-700 text-neutral-400 px-2 py-0.5 rounded leading-none">You</span>
-                {% endif %}
-                <span class="text-sm text-neutral-500">{{ comment.created_at|date:"N j, Y" }}</span>
-                {% if comment.is_edited %}
-                  <span class="text-neutral-600">•</span>
-                  <span class="text-xs text-neutral-600">edited</span>
-                {% endif %}
-              </div>
-
-              <!-- Quoted passage (clickable — scrolls to source in essay) -->
-              {% if comment.quote %}
-                <blockquote
-                  class="border-l-2 border-neutral-600 pl-3 mb-2 text-sm text-neutral-400 italic cursor-pointer hover:border-neutral-400 hover:text-neutral-300 transition-colors"
-                  title="Click to locate in essay"
-                  onclick="scrollToQuote('{{ comment.quote|escapejs }}')"
-                >{{ comment.quote }}</blockquote>
-              {% endif %}
-
-              <!-- Body -->
-              <p class="font-prose text-base text-neutral-300 leading-relaxed">{{ comment.content }}</p>
-
-              <!-- Action row -->
-              <div class="flex items-center gap-3 mt-2">
-                <!-- Upvote -->
-                <button type="button" @click="toggleLike()"
-                  class="flex items-center gap-1 text-xs transition-colors"
-                  :class="liked ? 'text-emerald-400' : 'text-neutral-500 hover:text-neutral-200'">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-                       :fill="liked ? 'currentColor' : 'none'"
-                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                  </svg>
-                  <span x-text="likeCount > 0 ? likeCount : ''"></span>
-                </button>
-
-                {% if user == comment.author %}
-                  <span class="text-neutral-700 text-xs">·</span>
-                  <a href="{% url 'interactions:comment_edit' comment_id=comment.pk %}"
-                    class="text-xs text-neutral-500 hover:text-neutral-200 transition-colors">Edit</a>
-                  <button type="button"
-                    @click="openDelete('{% url 'interactions:comment_delete' comment_id=comment.pk %}')"
-                    class="text-xs text-neutral-500 hover:text-red-400 transition-colors">Delete</button>
-                {% endif %}
-
-                <span class="text-neutral-700 text-xs">·</span>
-                <button type="button" @click="replyOpen = !replyOpen"
-                  class="text-xs text-neutral-500 hover:text-neutral-200 transition-colors">Reply</button>
-              </div>
-
-              <!-- Inline reply form -->
-              <form x-show="replyOpen" x-cloak
-                    method="post" action="{% url 'interactions:comment' essay_id=essay.pk %}"
-                    class="mt-3">
-                {% csrf_token %}
-                <input type="hidden" name="parent_id" value="{{ comment.pk }}">
-                <textarea name="content" rows="2"
-                  placeholder="Write a reply..."
-                  class="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-sm text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-500 transition-colors resize-none"
-                ></textarea>
-                <div class="flex items-center gap-2 mt-1.5">
-                  <button type="submit" class="text-xs bg-neutral-700 text-neutral-300 hover:bg-neutral-600 px-3 py-1.5 rounded transition-colors">Post reply</button>
-                  <button type="button" @click="replyOpen = false" class="text-xs text-neutral-500 hover:text-neutral-300 transition-colors">Cancel</button>
-                </div>
-              </form>
-
-              <!-- Replies -->
-              {% with reply_count=comment.replies.count %}
-              {% if reply_count %}
-                <button type="button" @click="repliesOpen = !repliesOpen"
-                  class="mt-3 flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-300 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                       :class="repliesOpen ? 'rotate-180' : ''" class="transition-transform">
-                    <path d="m6 9 6 6 6-6"/>
-                  </svg>
-                  <span x-show="!repliesOpen">{{ reply_count }} repl{{ reply_count|pluralize:"y,ies" }}</span>
-                  <span x-show="repliesOpen" x-cloak>Hide repl{{ reply_count|pluralize:"y,ies" }}</span>
-                </button>
-
-                <div x-show="repliesOpen" x-cloak class="mt-4 flex flex-col gap-4 border-l border-neutral-800 pl-4 ml-1">
-                  {% for reply in comment.replies.all %}
-                    <div
-                      x-data="{
-                        liked: {% if reply.pk in liked_comment_ids %}true{% else %}false{% endif %},
-                        likeCount: {{ reply.like_count }},
-                        async toggleLike() {
-                          const res = await fetch('{% url 'interactions:comment_like' comment_id=reply.pk %}', {
-                            method: 'POST', headers: { 'X-CSRFToken': window.__CSRF__ }
-                          });
-                          const data = await res.json();
-                          this.liked = data.liked;
-                          this.likeCount = data.count;
-                        }
-                      }"
-                      class="flex gap-3"
-                    >
-                      <div class="w-7 h-7 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-medium text-neutral-200 shrink-0 overflow-hidden">
-                        {% if reply.author.profile.photo %}
-                          <img src="{{ reply.author.profile.photo.url }}" alt="{{ reply.author.username }}" class="w-full h-full object-cover" />
-                        {% else %}
-                          {{ reply.author.first_name|first|upper }}{{ reply.author.last_name|first|upper }}
-                        {% endif %}
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-1 flex-wrap">
-                          <a href="{% url 'accounts:profile' username=reply.author.username %}" class="text-sm font-medium text-neutral-200 hover:text-white transition-colors">{{ reply.author.first_name }} {{ reply.author.last_name }}</a>
-                          {% if user == reply.author %}
-                            <span class="text-xs bg-neutral-700 text-neutral-400 px-2 py-0.5 rounded leading-none">You</span>
-                          {% endif %}
-                          <span class="text-sm text-neutral-500">{{ reply.created_at|date:"N j, Y" }}</span>
-                          {% if reply.is_edited %}
-                            <span class="text-neutral-600">•</span>
-                            <span class="text-xs text-neutral-600">edited</span>
-                          {% endif %}
-                        </div>
-                        {% if reply.quote %}
-                          <blockquote
-                            class="border-l-2 border-neutral-600 pl-3 mb-2 text-sm text-neutral-400 italic cursor-pointer hover:border-neutral-400 hover:text-neutral-300 transition-colors"
-                            title="Click to locate in essay"
-                            onclick="scrollToQuote('{{ reply.quote|escapejs }}')"
-                          >{{ reply.quote }}</blockquote>
-                        {% endif %}
-                        <p class="font-prose text-base text-neutral-300 leading-relaxed">{{ reply.content }}</p>
-                        <div class="flex items-center gap-3 mt-2">
-                          <button type="button" @click="toggleLike()"
-                            class="flex items-center gap-1 text-xs transition-colors"
-                            :class="liked ? 'text-emerald-400' : 'text-neutral-500 hover:text-neutral-200'">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-                                 :fill="liked ? 'currentColor' : 'none'"
-                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-                            </svg>
-                            <span x-text="likeCount > 0 ? likeCount : ''"></span>
-                          </button>
-                          {% if user == reply.author %}
-                            <span class="text-neutral-700 text-xs">·</span>
-                            <a href="{% url 'interactions:comment_edit' comment_id=reply.pk %}"
-                              class="text-xs text-neutral-500 hover:text-neutral-200 transition-colors">Edit</a>
-                            <button type="button"
-                              @click="openDelete('{% url 'interactions:comment_delete' comment_id=reply.pk %}')"
-                              class="text-xs text-neutral-500 hover:text-red-400 transition-colors">Delete</button>
-                          {% endif %}
-                        </div>
-                      </div>
-                    </div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-              {% endwith %}
-
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="text-sm text-neutral-500">No comments yet. Be the first to share your thoughts.</p>
+    {% if essay.author.profile.bio %}
+      <p class="mt-3 line-clamp-3 text-sm leading-relaxed text-muted">{{ essay.author.profile.bio }}</p>
     {% endif %}
   </section>
-  {% endif %}
+{% endblock %}
 
-  <!-- Text-selection quote popover -->
-  <div id="quote-popover"
-       x-show="quotePopoverShow"
-       x-cloak
-       :style="`position:fixed;left:${popoverX}px;top:${popoverY}px;transform:translateX(-50%)`"
-       class="z-50">
-    {% if user.is_authenticated %}
-      <button type="button"
-              @click="quotePopoverShow = false; $nextTick(() => { const el = document.getElementById('main-comment-textarea'); if (el) { el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); } })"
-              class="flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-neutral-100 text-xs px-3 py-1.5 rounded-full shadow-lg transition-colors whitespace-nowrap">
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        Comment on this
-      </button>
-    {% else %}
-      <a href="{% url 'accounts:login' %}?next={{ request.path }}"
-         class="flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-neutral-100 text-xs px-3 py-1.5 rounded-full shadow-lg transition-colors whitespace-nowrap">
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        Sign in to comment
+{% block content %}
+{% url 'essays:detail' username=essay.author.username slug=essay.slug as essay_url %}
+<div x-data="essayPage({ isPublic: {{ essay.is_public|yesno:'true,false' }}, visibilityUrl: '{% url 'essays:visibility' username=essay.author.username slug=essay.slug %}', hearted: {{ is_hearted|yesno:'true,false' }}, hearts: {{ heart_count }}, reactUrl: '{% url 'interactions:react' article_id=essay.pk %}', url: '{{ essay_url }}', title: '{{ essay.display_title|escapejs }}' })">
+
+  <article>
+    <!-- Byline -->
+    <header class="flex items-center gap-3">
+      <a href="{% url 'accounts:profile' username=essay.author.username %}" class="shrink-0" tabindex="-1" aria-hidden="true">
+        {% include "partials/avatar.html" with u=essay.author size="size-10 text-sm" %}
       </a>
-    {% endif %}
-  </div>
-
-  <!-- Toast notification -->
-  <div x-show="toastVisible" x-cloak
-       x-transition:enter="transition ease-out duration-200"
-       x-transition:enter-start="opacity-0 translate-y-1"
-       x-transition:enter-end="opacity-100 translate-y-0"
-       x-transition:leave="transition ease-in duration-150"
-       x-transition:leave-start="opacity-100 translate-y-0"
-       x-transition:leave-end="opacity-0 translate-y-1"
-       class="fixed bottom-6 right-6 z-50 bg-neutral-700 border border-neutral-600 text-neutral-100 text-sm px-4 py-2.5 rounded-lg shadow-lg pointer-events-none">
-    <span x-text="toast"></span>
-  </div>
-
-  <!-- Essay delete confirmation modal -->
-  <div x-show="confirmEssayDelete" x-cloak
-       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-       @keydown.escape.window="confirmEssayDelete = false">
-    <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl"
-         @click.outside="confirmEssayDelete = false">
-      <p class="text-sm text-neutral-300 mb-1">Delete this essay?</p>
-      <p class="text-xs text-neutral-500 mb-5">This is permanent and cannot be undone.</p>
-      <div class="flex justify-end gap-3">
-        <button @click="confirmEssayDelete = false" type="button"
-                class="text-xs text-neutral-400 hover:text-neutral-200 px-3 py-1.5 rounded hover:bg-neutral-700 transition-colors">
-          Cancel
+      <div class="min-w-0 flex-1 leading-5">
+        <a href="{% url 'accounts:profile' username=essay.author.username %}" class="block truncate text-[15px] font-semibold text-fg hover:underline">{{ essay.author.get_full_name|default:essay.author.username }}</a>
+        <p class="flex items-center gap-1.5 truncate text-sm text-muted">
+          <span class="truncate">@{{ essay.author.username }}{% if not essay.is_note %} · {{ essay.read_time }} min read{% endif %}</span>
+          <span x-show="isPublic" {% if not essay.is_public %}x-cloak{% endif %} class="badge shrink-0 gap-1" title="Anyone with the link can read this article">{% include "partials/icon.html" with name="globe" size=11 stroke="2.2" %} Public</span>
+        </p>
+      </div>
+      {% include "partials/follow_button.html" with target=essay.author variant="solid" %}
+      <div class="relative" x-data="{ open: false }" @keydown.escape="open = false">
+        <button type="button" @click="open = !open" class="icon-btn" aria-label="Post options">
+          {% include "partials/icon.html" with name="more" size=20 stroke="2.4" %}
         </button>
-        <form action="{% url 'essays:delete' username=essay.author.username slug=essay.slug %}" method="post">
-          {% csrf_token %}
-          <button type="submit"
-                  class="text-xs text-red-400 hover:text-red-300 px-3 py-1.5 rounded hover:bg-neutral-700 transition-colors">
-            Delete
-          </button>
-        </form>
+        <div x-show="open" x-cloak @click.outside="open = false" x-transition.opacity.duration.100ms class="menu top-full right-0 mt-1 w-56">
+          <button type="button" @click="open = false; copyLink()" class="menu-item">{% include "partials/icon.html" with name="link" size=16 cls="text-muted" %} Copy link</button>
+          {% if user == essay.author and not essay.is_note %}
+            <div class="menu-divider"></div>
+            <button type="button" x-show="!isPublic" @click="open = false; setPublic(true)" class="menu-item items-start">
+              {% include "partials/icon.html" with name="globe" size=16 cls="mt-0.5 text-muted" %}
+              <span><span class="block">Make public</span><span class="block text-xs text-muted">Anyone with the link can read it</span></span>
+            </button>
+            <button type="button" x-show="isPublic" x-cloak @click="open = false; setPublic(false)" class="menu-item items-start">
+              {% include "partials/icon.html" with name="lock" size=16 cls="mt-0.5 text-muted" %}
+              <span><span class="block">Make members-only</span><span class="block text-xs text-muted">The public link stops working</span></span>
+            </button>
+            <div class="menu-divider"></div>
+          {% endif %}
+          {% if user == essay.author %}
+            <a href="{% url 'essays:edit' username=essay.author.username slug=essay.slug %}" class="menu-item">{% include "partials/icon.html" with name="edit" size=16 cls="text-muted" %} Edit {{ essay.get_kind_display|lower }}</a>
+            <button type="button" @click="open = false; confirmEssayDelete = true" class="menu-item text-danger">{% include "partials/icon.html" with name="trash" size=16 %} Delete {{ essay.get_kind_display|lower }}</button>
+          {% else %}
+            <div class="menu-divider"></div>
+            <button type="button" @click="open = false; $dispatch('open-report', 'essay')" class="menu-item text-danger">{% include "partials/icon.html" with name="flag" size=16 %} Report {{ essay.get_kind_display|lower }}</button>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    {% if not essay.is_note %}
+    <!-- Title (articles only) -->
+    <h1 class="mt-5 text-[28px] leading-tight font-bold tracking-tight text-fg sm:text-[32px]">{{ essay.title }}</h1>
+    {% if essay.excerpt %}
+      <p class="mt-2 text-lg leading-snug text-muted">{{ essay.excerpt }}</p>
+    {% endif %}
+    {% if essay.tags.all %}
+      <div class="mt-3 flex flex-wrap gap-x-3 gap-y-1">
+        {% for tag in essay.tags.all %}
+          <a href="{% url 'essays:tag' slug=tag.slug %}" class="text-sm font-medium text-accent hover:text-accent-strong">#{{ tag.name }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if essay.cover_image %}
+      <img src="{{ essay.cover_image.url }}" alt="" class="mt-6 w-full rounded-xl border border-line object-cover">
+    {% endif %}
+    {% endif %}
+
+    <!-- Body (notes are text-only: images are stripped) -->
+    <div id="essay-body" class="prose prose-essay {% if essay.is_note %}mt-4{% else %}mt-6{% endif %} max-w-none">
+      {% if essay.is_note %}{{ essay.content|render_note }}{% else %}{{ essay.content|render_markdown }}{% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-8 flex items-center gap-6">
+      <button type="button" @click="toggleHeart()" class="action{% if is_hearted %} is-active{% endif %}"
+              :class="{ 'is-active': hearted }" :aria-pressed="hearted.toString()" aria-label="Like">
+        {% include "partials/icon.html" with name="heart" size=20 %}
+        <span x-text="hearts || ''">{% if heart_count %}{{ heart_count }}{% endif %}</span>
+      </button>
+      <a href="#comments" @click.prevent="openComposer()" class="action" aria-label="Reply">
+        {% include "partials/icon.html" with name="comment" size=20 %}
+        <span>{% if comment_count %}{{ comment_count }}{% endif %}</span>
+      </a>
+      <div class="relative" x-data="{ open: false }" @keydown.escape="open = false">
+        <button type="button" @click="open = !open" class="action" aria-label="Share">
+          {% include "partials/icon.html" with name="share" size=20 %}
+        </button>
+        <div x-show="open" x-cloak @click.outside="open = false" x-transition.opacity.duration.100ms class="menu bottom-full left-0 mb-2 w-64">
+          {% if not essay.is_note %}
+            <p class="flex items-start gap-2 px-4 pt-1.5 pb-2 text-xs text-muted">
+              <span x-show="isPublic" {% if not essay.is_public %}x-cloak{% endif %}>{% include "partials/icon.html" with name="globe" size=14 %}</span>
+              <span x-show="!isPublic" {% if essay.is_public %}x-cloak{% endif %}>{% include "partials/icon.html" with name="lock" size=14 %}</span>
+              <span x-text="isPublic ? 'Public: anyone with the link can read it.' : 'Members-only: people need to sign in to open the link.'">{% if essay.is_public %}Public: anyone with the link can read it.{% else %}Members-only: people need to sign in to open the link.{% endif %}</span>
+            </p>
+            <div class="menu-divider"></div>
+          {% endif %}
+          <button type="button" @click="open = false; shareTo('whatsapp')" class="menu-item">{% include "partials/icon.html" with name="whatsapp" size=16 cls="text-muted" %} WhatsApp</button>
+          <button type="button" @click="open = false; shareTo('x')" class="menu-item">{% include "partials/icon.html" with name="x-brand" size=16 cls="text-muted" %} X / Twitter</button>
+          <button type="button" @click="open = false; copyLink()" class="menu-item">{% include "partials/icon.html" with name="link" size=16 cls="text-muted" %} Copy link</button>
+        </div>
       </div>
     </div>
+
+    <!-- Stats -->
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-y border-line py-3 text-sm text-muted">
+      <p class="tabular-nums">
+        <span x-text="hearts + (hearts === 1 ? ' Like' : ' Likes')">{{ heart_count }} Like{{ heart_count|pluralize }}</span>
+        · {{ comment_count }} Comment{{ comment_count|pluralize }}
+        {% if user == essay.author %}· {{ essay.view_count }} View{{ essay.view_count|pluralize }}{% endif %}
+      </p>
+      <p><time datetime="{{ essay.published_at|date:'c' }}">{{ essay.published_at|date:"M j, Y \a\t g:i A" }}</time>{% if essay.is_edited %} · Edited{% endif %}</p>
+    </div>
+  </article>
+
+  <!-- Discussion -->
+  <section id="comments" class="mt-6 scroll-mt-20" aria-label="Comments">
+
+    <!-- Reply box -->
+    <form method="post" action="{% url 'interactions:comment' article_id=essay.pk %}"
+          class="card flex gap-3 px-4 py-3.5 transition-colors" :class="composerOpen && 'border-muted/60'">
+      {% csrf_token %}
+      <input type="hidden" name="quote" :value="quoteText">
+      {% include "partials/avatar.html" with u=user size="size-9 text-xs" %}
+      <div class="min-w-0 flex-1">
+        <div x-show="quoteText" x-cloak class="mb-2 flex items-start gap-2">
+          <blockquote class="line-clamp-3 flex-1 border-l-2 border-accent pl-3 text-sm text-muted italic" x-text="quoteText"></blockquote>
+          <button type="button" @click="quoteText = ''" class="icon-btn size-6 shrink-0" aria-label="Remove quote">
+            {% include "partials/icon.html" with name="x" size=14 stroke="2.2" %}
+          </button>
+        </div>
+        <textarea id="main-comment-textarea" name="content" required
+                  :rows="composerOpen ? 4 : 1" rows="1"
+                  @focus="composerOpen = true"
+                  placeholder="Leave a reply…"
+                  class="block w-full resize-none bg-transparent py-1.5 text-[17px] text-fg outline-none placeholder:text-muted"></textarea>
+        <div x-show="composerOpen" x-cloak class="mt-3 flex justify-end gap-2">
+          <button type="button" @click="composerOpen = false; quoteText = ''" class="btn btn-sm btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-accent">Post</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Sort -->
+    {% if comments %}
+      <div class="mt-5 flex items-center justify-between border-b border-line pb-3">
+        <p class="text-sm font-semibold text-fg">{{ comment_count }} comment{{ comment_count|pluralize }}</p>
+        <div class="flex items-center gap-1 text-[13px]">
+          <a href="?sort=popular#comments" class="rounded-full px-3 py-1 font-medium transition-colors {% if sort == 'popular' %}bg-press text-fg{% else %}text-muted hover:text-fg{% endif %}">Top</a>
+          <a href="?sort=latest#comments" class="rounded-full px-3 py-1 font-medium transition-colors {% if sort == 'latest' %}bg-press text-fg{% else %}text-muted hover:text-fg{% endif %}">Latest</a>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Threads -->
+    <div>
+      {% for comment in comments %}
+        {% with replies=comment.replies.all %}
+        <div class="border-b border-line py-5" x-data="{ replyOpen: false }">
+          {% if replies %}
+            {% include "essays/partials/comment.html" with c=comment thread=comment line=True is_reply=False %}
+          {% else %}
+            {% include "essays/partials/comment.html" with c=comment thread=comment line=False is_reply=False %}
+          {% endif %}
+
+          {% for reply in replies %}
+            {% if forloop.last %}
+              {% include "essays/partials/comment.html" with c=reply thread=comment line=False is_reply=True %}
+            {% else %}
+              {% include "essays/partials/comment.html" with c=reply thread=comment line=True is_reply=True %}
+            {% endif %}
+          {% endfor %}
+
+          <!-- Reply form -->
+          <form x-show="replyOpen" x-cloak method="post" action="{% url 'interactions:comment' article_id=essay.pk %}" class="mt-4 flex gap-3">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" value="{{ comment.pk }}">
+            <div class="flex w-9 shrink-0 justify-center">{% include "partials/avatar.html" with u=user size="size-7 text-[10px]" %}</div>
+            <div class="min-w-0 flex-1">
+              <textarea id="reply-{{ comment.pk }}" name="content" rows="2" required
+                        placeholder="Reply to {{ comment.author.first_name|default:comment.author.username }}…"
+                        class="input resize-none"></textarea>
+              <div class="mt-2 flex justify-end gap-2">
+                <button type="button" @click="replyOpen = false" class="btn btn-sm btn-ghost">Cancel</button>
+                <button type="submit" class="btn btn-sm btn-accent">Reply</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        {% endwith %}
+      {% empty %}
+        <p class="py-10 text-center text-sm text-muted">No comments yet. Be the first to share your thoughts.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Selection popover: quote a passage into the reply box -->
+  <div id="quote-popover" x-show="popover.show" x-cloak
+       :style="`position:fixed;left:${popover.x}px;top:${popover.y}px;transform:translateX(-50%)`"
+       class="z-50">
+    <button type="button" @click="quoteSelection()"
+            class="inline-flex items-center gap-1.5 rounded-full bg-fg px-3.5 py-2 text-[13px] font-semibold whitespace-nowrap text-page shadow-lg">
+      {% include "partials/icon.html" with name="quote" size=14 %}
+      Quote in reply
+    </button>
   </div>
 
-  <!-- Comment/reply delete confirmation modal -->
-  <div x-show="confirmDelete" x-cloak
-       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+  <!-- Report dialogs -->
+  {% if user != essay.author %}
+    {% url 'interactions:report_article' article_id=essay.pk as report_url %}
+    {% with report_title="Report "|add:essay.get_kind_display %}
+      {% include "partials/report_dialog.html" with key="essay" url=report_url title=report_title subject=essay.display_title %}
+    {% endwith %}
+  {% endif %}
+  {% if comments %}
+    {# One shared dialog; each comment passes its own URL and summary when opening it. #}
+    {% include "partials/report_dialog.html" with key="comment" url="" title="Report comment" subject="" %}
+  {% endif %}
+
+  <!-- Delete post -->
+  {% if user == essay.author %}
+    <div x-show="confirmEssayDelete" x-cloak x-transition.opacity.duration.150ms
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+         @keydown.escape.window="confirmEssayDelete = false">
+      <div class="w-full max-w-sm rounded-xl border border-line bg-raised p-6 shadow-2xl" @click.outside="confirmEssayDelete = false">
+        <h2 class="text-[17px] font-bold text-fg">Delete this {{ essay.get_kind_display|lower }}?</h2>
+        <p class="mt-1 text-sm text-muted">This is permanent and cannot be undone.</p>
+        <div class="mt-6 flex justify-end gap-2">
+          <button type="button" @click="confirmEssayDelete = false" class="btn btn-sm btn-ghost">Cancel</button>
+          <form action="{% url 'essays:delete' username=essay.author.username slug=essay.slug %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Delete comment -->
+  <div x-show="confirmDelete" x-cloak x-transition.opacity.duration.150ms
+       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
        @keydown.escape.window="confirmDelete = false">
-    <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl"
-         @click.outside="confirmDelete = false">
-      <p class="text-sm text-neutral-300 mb-5">Delete this comment? This can't be undone.</p>
-      <div class="flex justify-end gap-3">
-        <button @click="confirmDelete = false" type="button"
-                class="text-sm text-neutral-400 hover:text-neutral-200 px-3 py-1.5 rounded hover:bg-neutral-700 transition-colors">
-          Cancel
-        </button>
+    <div class="w-full max-w-sm rounded-xl border border-line bg-raised p-6 shadow-2xl" @click.outside="confirmDelete = false">
+      <h2 class="text-[17px] font-bold text-fg">Delete this comment?</h2>
+      <p class="mt-1 text-sm text-muted">This can't be undone.</p>
+      <div class="mt-6 flex justify-end gap-2">
+        <button type="button" @click="confirmDelete = false" class="btn btn-sm btn-ghost">Cancel</button>
         <form :action="deleteTarget" method="post">
           {% csrf_token %}
-          <button type="submit"
-                  class="text-sm text-red-400 hover:text-red-300 px-3 py-1.5 rounded hover:bg-neutral-700 transition-colors">
-            Delete
-          </button>
+          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
         </form>
       </div>
     </div>
