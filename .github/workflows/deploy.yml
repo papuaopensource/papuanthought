@@ -11,7 +11,7 @@ concurrency:
 jobs:
   pull-latest-commit:
     name: Pull Latest Commit on Server
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     steps:
     - name: Install SSH Key
@@ -45,7 +45,7 @@ jobs:
 
   build-assets:
     name: Install Dependencies and Build Assets
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     needs: pull-latest-commit
     steps:
@@ -79,7 +79,7 @@ jobs:
 
   restart-services:
     name: Restart Supervisor services for papuanthought
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     needs: build-assets
     steps:
