@@ -9,3 +9,295 @@
   * the scope of this path.
   */
 @source "../../../**/*.{html,py,js}";
+
+/* ──────────────────────────────────────────────────────────────
+   Design tokens
+   Dark is the default theme; [data-theme="light"] on <html>
+   swaps the same tokens, so templates never need theme-specific
+   classes. Use the semantic utilities: bg-page, bg-card, bg-raised,
+   bg-tint, bg-press, border-line, text-fg, text-muted, *-accent.
+   ────────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+  --color-page: #161718;          /* app background */
+  --color-card: #1b1c1d;          /* cards, inputs */
+  --color-raised: #202122;        /* menus, popovers, modals */
+  --color-tint: #222324;          /* hover background */
+  --color-press: #2b2c2d;         /* active / pressed background, avatar fallback */
+  --color-line: #313233;          /* borders and dividers */
+  --color-fg: #eeeeee;            /* primary text */
+  --color-muted: #858585;         /* secondary text, icons */
+  /* Brand accent: warm clay / terracotta. */
+  --color-accent: #c96442;        /* accent text, icons, small marks */
+  --color-accent-strong: #d97757; /* accent text hover */
+  --color-accent-fill: #c96442;   /* accent button background */
+  --color-accent-fill-hover: #d97757;
+  --color-accent-soft: #3a2924;   /* tinted accent background */
+  --color-on-accent: #ffffff;     /* text on accent fills */
+  --color-danger: #f2555a;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-raised: #ffffff;
+  --color-tint: #f5f5f5;
+  --color-press: #ebebeb;
+  --color-line: #e6e6e6;
+  --color-fg: #363737;
+  --color-muted: #737373;
+  --color-accent: #b4552f;        /* deeper clay keeps text contrast >= 4.5:1 on white */
+  --color-accent-strong: #9a4527;
+  --color-accent-fill: #b4552f;
+  --color-accent-fill-hover: #9a4527;
+  --color-accent-soft: #f8e9e2;
+  --color-on-accent: #ffffff;
+  --color-danger: #dc2626;
+}
+
+@layer base {
+  body {
+    @apply bg-page text-fg antialiased;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-accent) 30%, transparent);
+  }
+
+  [x-cloak] {
+    display: none !important;
+  }
+
+  /* Scrollbars stay hidden, as before the redesign. */
+  * {
+    scrollbar-width: none;
+  }
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Components
+   Plain classes in the components layer, so any utility on the
+   same element still wins.
+   ────────────────────────────────────────────────────────────── */
+@layer components {
+  /* Surfaces */
+  .card {
+    @apply rounded-xl border border-line bg-card;
+  }
+  .card-title {
+    @apply text-[17px] font-bold text-fg;
+  }
+  .menu {
+    @apply absolute z-40 min-w-48 overflow-hidden rounded-xl border border-line bg-raised py-1.5 shadow-2xl shadow-black/30;
+  }
+  .menu-item {
+    @apply flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-fg transition-colors hover:bg-tint;
+  }
+  .menu-divider {
+    @apply my-1.5 border-t border-line;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold whitespace-nowrap transition-colors select-none disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply h-8 px-3 text-[13px];
+  }
+  .btn-lg {
+    @apply h-11 px-5 text-[15px];
+  }
+  .btn-accent {
+    @apply bg-accent-fill text-on-accent hover:bg-accent-fill-hover;
+  }
+  .btn-soft {
+    @apply bg-accent-soft text-accent hover:bg-accent-fill hover:text-on-accent;
+  }
+  .btn-outline {
+    @apply border border-line text-fg hover:bg-tint;
+  }
+  .btn-ghost {
+    @apply text-muted hover:bg-tint hover:text-fg;
+  }
+  .btn-danger {
+    @apply bg-danger text-white hover:opacity-90;
+  }
+  .icon-btn {
+    @apply inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-tint hover:text-fg;
+  }
+
+  /* Follow button variants (see partials/follow_button.html) */
+  .follow-text {
+    @apply cursor-pointer text-sm font-semibold text-accent transition-colors hover:text-accent-strong;
+  }
+  .follow-text.is-following {
+    @apply text-muted hover:text-fg;
+  }
+  .follow-soft {
+    @apply inline-flex h-8 cursor-pointer items-center rounded-lg bg-accent-soft px-3 text-[13px] font-semibold text-accent transition-colors hover:bg-accent-fill hover:text-on-accent;
+  }
+  .follow-soft.is-following,
+  .follow-solid.is-following {
+    @apply border border-line bg-transparent text-muted hover:bg-tint hover:text-fg;
+  }
+  .follow-solid {
+    @apply inline-flex h-9 cursor-pointer items-center rounded-lg bg-accent-fill px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-fill-hover;
+  }
+
+  /* Forms */
+  .input {
+    @apply block w-full rounded-lg border border-line bg-card px-3.5 py-2.5 text-[15px] text-fg transition-colors outline-none placeholder:text-muted focus:border-muted;
+  }
+  .input.is-invalid {
+    @apply border-danger;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-fg;
+  }
+  .help {
+    @apply text-[13px] text-muted;
+  }
+  .field-error {
+    @apply mt-1.5 text-[13px] text-danger;
+  }
+  .alert-error {
+    @apply rounded-lg border border-danger/30 bg-danger/10 px-3.5 py-2.5 text-sm text-danger;
+  }
+  .alert-info {
+    @apply rounded-lg border border-line bg-card px-3.5 py-2.5 text-sm text-fg;
+  }
+
+  /* Navigation */
+  .nav-item {
+    @apply flex items-center gap-4 rounded-lg px-3 py-2.5 text-[15px] text-muted transition-colors hover:bg-tint hover:text-fg;
+  }
+  .nav-item[aria-current="page"] {
+    @apply font-semibold text-fg;
+  }
+  .tab {
+    @apply -mb-px border-b-2 border-transparent pb-3 text-[15px] font-medium text-muted transition-colors hover:text-fg;
+  }
+  .tab[aria-selected="true"] {
+    @apply border-fg text-fg;
+  }
+
+  /* Feed / post actions */
+  .action {
+    @apply inline-flex cursor-pointer items-center gap-1.5 text-sm text-muted tabular-nums transition-colors hover:text-fg;
+  }
+  .action.is-active {
+    @apply text-accent;
+  }
+  .action.is-active svg {
+    fill: currentColor;
+  }
+
+  /* Avatar (partials/avatar.html) */
+  .avatar {
+    @apply inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-press font-semibold text-fg uppercase select-none;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-md bg-accent-soft px-1.5 py-0.5 text-[11px] leading-none font-semibold text-accent;
+  }
+
+  .quote-flash {
+    transition: background-color 0.4s ease;
+    background-color: color-mix(in oklab, var(--color-accent) 18%, transparent);
+  }
+}
+
+/* Long-form essay body.
+   Unlayered on purpose: the typography plugin puts .prose in the utilities
+   layer, so these overrides must sit outside the layers to win. */
+.prose-essay {
+  --tw-prose-body: var(--color-fg);
+  --tw-prose-headings: var(--color-fg);
+  --tw-prose-lead: var(--color-fg);
+  --tw-prose-links: var(--color-fg);
+  --tw-prose-bold: var(--color-fg);
+  --tw-prose-counters: var(--color-muted);
+  --tw-prose-bullets: var(--color-muted);
+  --tw-prose-hr: var(--color-line);
+  --tw-prose-quotes: var(--color-fg);
+  --tw-prose-quote-borders: var(--color-accent);
+  --tw-prose-captions: var(--color-muted);
+  --tw-prose-code: var(--color-fg);
+  --tw-prose-pre-code: var(--color-fg);
+  --tw-prose-pre-bg: var(--color-card);
+  --tw-prose-th-borders: var(--color-line);
+  --tw-prose-td-borders: var(--color-line);
+  font-size: 17px;
+  line-height: 1.75;
+}
+.prose-essay a {
+  text-decoration-color: var(--color-muted);
+  text-underline-offset: 3px;
+}
+.prose-essay a:hover {
+  text-decoration-color: var(--color-accent);
+}
+.prose-essay blockquote {
+  font-style: normal;
+  font-weight: 400;
+  border-left-width: 3px;
+  padding-left: 1rem;
+  quotes: none;
+}
+.prose-essay img {
+  border-radius: 0.75rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+.prose-essay blockquote p:first-of-type::before,
+.prose-essay blockquote p:last-of-type::after {
+  content: none;
+}
+
+/* Essay text inside a feed card: same colours as .prose-essay, tighter rhythm. */
+.prose-feed {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.prose-feed > :first-child {
+  margin-top: 0;
+}
+.prose-feed p,
+.prose-feed ul,
+.prose-feed ol,
+.prose-feed blockquote {
+  margin-top: 0.6em;
+  margin-bottom: 0.6em;
+}
+.prose-feed h1,
+.prose-feed h2,
+.prose-feed h3,
+.prose-feed h4 {
+  font-size: 1.05em;
+  margin-top: 1em;
+  margin-bottom: 0.4em;
+}
+.prose-feed hr {
+  margin-top: 1.2em;
+  margin-bottom: 1.2em;
+}
+
+/* Article card with a cover: dark, blurred fade behind the text so it stays
+   readable on any image while picking up the image's own colours. */
+.cover-scrim {
+  background: linear-gradient(to top, rgb(0 0 0 / 0.78) 0%, rgb(0 0 0 / 0.5) 45%, rgb(0 0 0 / 0) 100%);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-mask-image: linear-gradient(to top, #000 50%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 50%, transparent 100%);
+}

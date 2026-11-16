@@ -1,0 +1,8 @@
+{# Essay search box. Param: value (current query). #}
+<form action="{% url 'essays:feed' %}" method="get" role="search" class="relative{% if cls %} {{ cls }}{% endif %}">
+  <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-muted">
+    {% include "partials/icon.html" with name="search" size=18 %}
+  </span>
+  <input type="search" name="q" value="{{ value }}" placeholder="Search Papuan Thought"
+         aria-label="Search posts and writers" class="input pl-10">
+</form>

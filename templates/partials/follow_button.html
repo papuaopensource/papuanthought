@@ -1,0 +1,17 @@
+{% comment %}
+Follow / Following toggle.
+Params: target (user), variant: "text" | "soft" (default) | "solid".
+Relies on `following_ids` from accounts.context_processors.sidebar_context.
+{% endcomment %}
+{% if user != target %}
+  <button type="button"
+          x-data="followButton({ username: '{{ target.username|escapejs }}', name: '{{ target.get_full_name|default:target.username|escapejs }}', url: '{% url 'interactions:follow' username=target.username %}', following: {% if target.pk in following_ids %}true{% else %}false{% endif %} })"
+          @click.prevent.stop="toggle()"
+          @follow-changed.window="sync($event.detail)"
+          :class="{ 'is-following': following }"
+          :aria-pressed="following.toString()"
+          :disabled="busy"
+          class="follow-{{ variant|default:'soft' }}{% if target.pk in following_ids %} is-following{% endif %}">
+    <span x-text="following ? 'Following' : 'Follow'">{% if target.pk in following_ids %}Following{% else %}Follow{% endif %}</span>
+  </button>
+{% endif %}

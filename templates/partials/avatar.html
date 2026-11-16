@@ -1,0 +1,2 @@
+{# Round avatar with initials fallback. Params: u (user), size (classes, default "size-10 text-sm"). #}
+<span class="avatar {{ size|default:'size-10 text-sm' }}">{% if u.profile.photo %}<img src="{{ u.profile.photo.url }}" alt="" class="size-full object-cover" loading="lazy">{% elif u.first_name %}{{ u.first_name|first }}{{ u.last_name|first }}{% else %}{{ u.username|first }}{% endif %}</span>

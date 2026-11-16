@@ -1,0 +1,54 @@
+{% comment %}
+Report dialog, opened by the window event `open-report` (see reportDialog in app.js).
+Params: key ("essay" | "comment" | "user"), url (POST endpoint; comments pass theirs in the
+event), title, subject (what is being reported).
+Uses `report_reasons` from accounts.context_processors.sidebar_context.
+{% endcomment %}
+<div x-data="reportDialog({ key: '{{ key }}', url: '{{ url }}', subject: '{{ subject|escapejs }}' })" @open-report.window="handle($event.detail)">
+  <div x-show="open" x-cloak x-transition.opacity.duration.150ms
+       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+       @keydown.escape.window="open = false">
+    <form @submit.prevent="submit()" @click.outside="open = false"
+          class="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-line bg-raised shadow-2xl"
+          role="dialog" aria-modal="true" aria-labelledby="report-title-{{ key }}">
+      <div class="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+        <div class="min-w-0">
+          <h2 id="report-title-{{ key }}" class="text-[17px] font-bold text-fg">{{ title }}</h2>
+          <p class="mt-0.5 line-clamp-2 text-sm text-muted" x-text="subject">{{ subject }}</p>
+        </div>
+        <button type="button" @click="open = false" class="icon-btn -mr-2 shrink-0" aria-label="Close">
+          {% include "partials/icon.html" with name="x" size=18 %}
+        </button>
+      </div>
+
+      <div class="overflow-y-auto px-5 py-4">
+        <fieldset>
+          <legend class="text-sm font-medium text-fg">What's wrong?</legend>
+          <div class="mt-2 flex flex-col">
+            {% for value, label in report_reasons %}
+              <label class="-mx-2 flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-[15px] text-fg transition-colors hover:bg-tint">
+                <input type="radio" name="reason" value="{{ value }}" x-model="reason" class="size-4 shrink-0 accent-accent">
+                {{ label }}
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <label for="report-details-{{ key }}" class="label mt-4">Details <span class="font-normal text-muted">· optional</span></label>
+        <textarea id="report-details-{{ key }}" x-model="details" rows="3" maxlength="2000"
+                  placeholder="Add anything that helps the admins understand the problem."
+                  class="input resize-none text-sm"></textarea>
+
+        <p x-show="error" x-cloak x-text="error" class="field-error"></p>
+        <p class="help mt-3">Reports are private. Only the admins see who sent them.</p>
+      </div>
+
+      <div class="flex justify-end gap-2 border-t border-line px-5 py-3">
+        <button type="button" @click="open = false" class="btn btn-sm btn-ghost">Cancel</button>
+        <button type="submit" :disabled="!reason || busy" class="btn btn-sm btn-accent">
+          <span x-text="busy ? 'Sending…' : 'Submit report'">Submit report</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
