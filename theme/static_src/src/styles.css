@@ -217,6 +217,12 @@
   }
 }
 
+/* Brand mark: the white logo on dark, the black one on light (partials/logo.html). */
+[data-theme="light"] .logo-on-dark,
+:root:not([data-theme="light"]) .logo-on-light {
+  display: none;
+}
+
 /* Long-form essay body.
    Unlayered on purpose: the typography plugin puts .prose in the utilities
    layer, so these overrides must sit outside the layers to win. */

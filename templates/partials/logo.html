@@ -1,5 +1,7 @@
-{# Brand mark. Param: wordmark (bool) to show the name next to the mark. #}
+{% load static %}
+{# Brand mark (white on dark, black on light). Param: wordmark (bool) to show the name next to it. #}
 <span class="inline-flex items-center gap-2.5">
-  <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent-fill text-[17px] leading-none font-extrabold text-on-accent" aria-hidden="true">P</span>
+  <img src="{% static 'logo/papuan-thought-primary-transparent.png' %}" alt="" width="32" height="32" class="logo-on-dark size-8 shrink-0 object-contain">
+  <img src="{% static 'logo/papuan-thought-inverse-transparent.png' %}" alt="" width="32" height="32" class="logo-on-light size-8 shrink-0 object-contain">
   {% if wordmark %}<span class="text-[17px] font-bold tracking-tight text-fg">Papuan Thought</span>{% else %}<span class="sr-only">Papuan Thought</span>{% endif %}
 </span>
