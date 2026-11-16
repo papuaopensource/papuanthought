@@ -25,7 +25,7 @@ This platform is an open space for Papuans to write and share their perspectives
 - TailwindCSS v4 via django-tailwind
 - Alpine.js for frontend interactivity
 - django-unfold for the admin panel
-- SQLite (development) / PostgreSQL (production)
+- SQLite3 database
 - uv as package manager
 
 ## Getting Started
