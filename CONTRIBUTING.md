@@ -50,7 +50,7 @@ Common types:
 Examples:
 
 ```
-feat(essays): add essay edit functionality
+feat(posts): add note editing
 fix(notifications): correct unread badge count on reload
 docs(readme): update local setup instructions
 refactor(interactions): extract tag helper into shared function

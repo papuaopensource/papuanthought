@@ -86,7 +86,7 @@ The admin panel is available at `http://127.0.0.1:8000/site-manager/`.
 
 ```
 accounts/        users, profiles, authentication
-essays/          essays, tags, publishing
+posts/           articles, notes, tags, image uploads, public sharing
 interactions/    comments, reactions, follow, bookmarks, notifications
 commons/         static pages (about, guidelines, privacy, etc.)
 templates/       main layout and partials (navbar, footer)
