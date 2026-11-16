@@ -1,4 +1,5 @@
 from pathlib import Path
+from django.templatetags.static import static
 from django.urls import reverse_lazy
 
 from interactions.badges import OpenReportsBadge
@@ -140,7 +141,14 @@ UNFOLD = {
     "SITE_HEADER": "Papuan Thought",
     "SITE_DESCRIPTION": "A platform for sharing thoughts and ideas from the Papuan community.",
     "SITE_URL": "/",
-    "SITE_SYMBOL": "newspaper",
+    "SITE_ICON": {
+        "light": lambda request: static("logo/papuan-thought-inverse-transparent.png"),
+        "dark": lambda request: static("logo/papuan-thought-primary-transparent.png"),
+    },
+    "SITE_FAVICONS": [
+        {"rel": "icon", "type": "image/svg+xml", "href": lambda request: static("favicon/favicon.svg")},
+        {"rel": "icon", "sizes": "96x96", "type": "image/png", "href": lambda request: static("favicon/favicon-96x96.png")},
+    ],
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": False,
     "COLORS": {
