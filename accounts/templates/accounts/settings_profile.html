@@ -1,18 +1,16 @@
 {% extends "accounts/settings_base.html" %}
 
-{% block title %}Edit Profile — Papuan Thought{% endblock %}
+{% block title %}Edit profile - Papuan Thought{% endblock %}
 {% block settings_title %}Edit profile{% endblock %}
 
 {% block settings_content %}
 
 {% if not user.first_name or not user.last_name or not profile.bio or not profile.location %}
-  <div class="text-sm text-neutral-400 bg-neutral-400/10 border border-neutral-400/20 rounded px-3 py-2.5 mb-6">
-    Please complete your profile — fill in all required fields before you can use the platform.
-  </div>
+  <p class="alert-info mb-6">Please complete your profile — fill in all required fields before you can use the platform.</p>
 {% endif %}
 
 {% if success %}
-  <p class="text-sm text-neutral-400 border border-neutral-700 rounded px-3 py-2 mb-6">{{ success }}</p>
+  <p class="alert-info mb-6">{{ success }}</p>
 {% endif %}
 
 <form method="post" enctype="multipart/form-data" class="flex flex-col gap-6">
@@ -20,93 +18,60 @@
 
   <!-- Photo -->
   <div class="flex items-center gap-4">
-    <div class="w-16 h-16 rounded-full flex items-center justify-center text-base font-semibold text-neutral-400 overflow-hidden shrink-0" style="background-color: var(--bg-muted);">
-      {% if profile.photo %}
-        <img src="{{ profile.photo.url }}" alt="Photo" class="w-full h-full object-cover" />
-      {% else %}
-        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-      {% endif %}
-    </div>
-    <div class="flex flex-col gap-1.5">
-      <label for="photo" class="text-xs text-neutral-400 uppercase tracking-wider">Profile photo</label>
+    {% include "partials/avatar.html" with u=user size="size-16 text-xl" %}
+    <div>
+      <label for="photo" class="label">Profile photo</label>
       <input id="photo" name="photo" type="file" accept="image/*"
-        class="text-xs text-neutral-500 file:mr-3 file:text-xs file:border file:border-neutral-700 file:rounded file:px-2 file:py-1 file:bg-transparent file:text-neutral-400 hover:file:text-neutral-200 hover:file:border-neutral-500 file:transition-colors cursor-pointer" />
+             class="text-[13px] text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:text-[13px] file:font-semibold file:text-fg hover:file:bg-tint">
     </div>
   </div>
 
-  <div class="border-t border-neutral-800"></div>
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-    <div class="flex flex-col gap-1.5">
-      <label for="first_name" class="flex items-center gap-1 text-xs text-neutral-400 uppercase tracking-wider">
-        First name
-        <span class="text-red-500 normal-case tracking-normal">*</span>
-      </label>
-      <input id="first_name" name="first_name" type="text" value="{{ user.first_name }}" required
-        class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 focus:outline-none focus:border-neutral-500 transition-colors" />
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    <div>
+      <label for="first_name" class="label">First name <span class="text-accent">*</span></label>
+      <input id="first_name" name="first_name" type="text" value="{{ user.first_name }}" required autocomplete="given-name" class="input">
     </div>
-    <div class="flex flex-col gap-1.5">
-      <label for="last_name" class="flex items-center gap-1 text-xs text-neutral-400 uppercase tracking-wider">
-        Last name
-        <span class="text-red-500 normal-case tracking-normal">*</span>
-      </label>
-      <input id="last_name" name="last_name" type="text" value="{{ user.last_name }}" required
-        class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 focus:outline-none focus:border-neutral-500 transition-colors" />
+    <div>
+      <label for="last_name" class="label">Last name <span class="text-accent">*</span></label>
+      <input id="last_name" name="last_name" type="text" value="{{ user.last_name }}" required autocomplete="family-name" class="input">
     </div>
   </div>
 
-  <div class="flex flex-col gap-1.5">
-    <label for="bio" class="flex items-center gap-1 text-xs text-neutral-400 uppercase tracking-wider">
-      Bio <span class="text-red-500 normal-case tracking-normal">*</span>
-    </label>
-    <textarea id="bio" name="bio" rows="3" required
-      class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-500 transition-colors resize-none leading-relaxed"
-      placeholder="A short bio about yourself">{{ profile.bio }}</textarea>
+  <div>
+    <label for="bio" class="label">Bio <span class="text-accent">*</span></label>
+    <textarea id="bio" name="bio" rows="3" required placeholder="A short bio about yourself" class="input resize-none leading-relaxed">{{ profile.bio }}</textarea>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-    <div class="flex flex-col gap-1.5">
-      <label for="location" class="flex items-center gap-1 text-xs text-neutral-400 uppercase tracking-wider">
-        Location <span class="text-red-500 normal-case tracking-normal">*</span>
-      </label>
-      <input id="location" name="location" type="text" value="{{ profile.location }}"
-        placeholder="e.g. Jayapura, Papua" required
-        class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-500 transition-colors" />
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    <div>
+      <label for="location" class="label">Location <span class="text-accent">*</span></label>
+      <input id="location" name="location" type="text" value="{{ profile.location }}" placeholder="e.g. Jayapura, Papua" required class="input">
     </div>
-    <div class="flex flex-col gap-1.5">
-      <label for="website" class="text-xs text-neutral-400 uppercase tracking-wider">Website</label>
-      <input id="website" name="website" type="url" value="{{ profile.website }}"
-        placeholder="https://yoursite.com"
-        class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-500 transition-colors" />
+    <div>
+      <label for="website" class="label">Website</label>
+      <input id="website" name="website" type="url" value="{{ profile.website }}" placeholder="https://yoursite.com" class="input">
     </div>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-    <div class="flex flex-col gap-1.5">
-      <label for="twitter" class="text-xs text-neutral-400 uppercase tracking-wider">Twitter / X</label>
-      <div class="flex items-center border-b border-neutral-700 focus-within:border-neutral-500 transition-colors">
-        <span class="text-xs text-neutral-600 pr-1.5">@</span>
-        <input id="twitter" name="twitter" type="text" value="{{ profile.twitter }}"
-          placeholder="username"
-          class="flex-1 bg-transparent py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none" />
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    <div>
+      <label for="twitter" class="label">X / Twitter</label>
+      <div class="relative">
+        <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-[15px] text-muted">@</span>
+        <input id="twitter" name="twitter" type="text" value="{{ profile.twitter }}" placeholder="username" class="input pl-8">
       </div>
     </div>
-    <div class="flex flex-col gap-1.5">
-      <label for="instagram" class="text-xs text-neutral-400 uppercase tracking-wider">Instagram</label>
-      <div class="flex items-center border-b border-neutral-700 focus-within:border-neutral-500 transition-colors">
-        <span class="text-xs text-neutral-600 pr-1.5">@</span>
-        <input id="instagram" name="instagram" type="text" value="{{ profile.instagram }}"
-          placeholder="username"
-          class="flex-1 bg-transparent py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none" />
+    <div>
+      <label for="instagram" class="label">Instagram</label>
+      <div class="relative">
+        <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-[15px] text-muted">@</span>
+        <input id="instagram" name="instagram" type="text" value="{{ profile.instagram }}" placeholder="username" class="input pl-8">
       </div>
     </div>
   </div>
 
-  <div class="pt-2">
-    <button type="submit"
-      class="bg-neutral-100 text-neutral-900 font-medium text-sm rounded px-4 py-2 hover:bg-white transition-colors">
-      Save changes
-    </button>
+  <div>
+    <button type="submit" class="btn btn-accent">Save changes</button>
   </div>
 </form>
 

@@ -9,8 +9,8 @@ class User(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
 
     class Meta:
-        verbose_name = _("user")
-        verbose_name_plural = _("users")
+        verbose_name = _("account")
+        verbose_name_plural = _("accounts")
 
     def __str__(self):
         return self.username
@@ -26,7 +26,6 @@ class Profile(models.Model):
     website = models.URLField(blank=True)
     twitter = models.CharField(max_length=50, blank=True)
     instagram = models.CharField(max_length=50, blank=True)
-    motivation = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

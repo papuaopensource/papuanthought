@@ -1,323 +1,182 @@
 {% extends "main_layout.html" %}
+{% load essay_filters %}
 
-{% block title %}{{ profile_user.first_name }} {{ profile_user.last_name }} — Papuan Thought{% endblock %}
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} - Papuan Thought{% endblock %}
+{% block description %}{% if profile_user.profile.bio %}{{ profile_user.profile.bio }}{% else %}Essays by {{ profile_user.get_full_name|default:profile_user.username }} on Papuan Thought.{% endif %}{% endblock %}
 
 {% block content %}
-<div>
-  <!-- Profile header -->
-  <div class="flex items-start gap-4 mb-6">
-
-    <!-- Avatar -->
-    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-neutral-800 flex items-center justify-center text-sm sm:text-xl font-semibold text-neutral-200 shrink-0 overflow-hidden">
-      {% if profile_user.profile.photo %}
-        <img src="{{ profile_user.profile.photo.url }}" alt="{{ profile_user.username }}" class="w-full h-full object-cover" />
+<!-- Header -->
+<header>
+  <div class="flex items-start justify-between gap-4">
+    {% include "partials/avatar.html" with u=profile_user size="size-20 text-2xl" %}
+    <div class="flex items-center gap-2 pt-2">
+      {% if user == profile_user %}
+        <a href="{% url 'accounts:settings_profile' %}" class="btn btn-outline">Edit profile</a>
       {% else %}
-        {{ profile_user.first_name|first|upper }}{{ profile_user.last_name|first|upper }}
+        {% include "partials/follow_button.html" with target=profile_user variant="solid" %}
+        <div class="relative" x-data="{ open: false }" @keydown.escape="open = false">
+          <button type="button" @click="open = !open" class="icon-btn size-9 border border-line" aria-label="Profile options">
+            {% include "partials/icon.html" with name="more" size=18 stroke="2.4" %}
+          </button>
+          <div x-show="open" x-cloak @click.outside="open = false" x-transition.opacity.duration.100ms class="menu top-full right-0 mt-1 w-56">
+            <button type="button" @click="open = false; PT.copyText(PT.absoluteUrl('{% url 'accounts:profile' username=profile_user.username %}'))" class="menu-item">
+              {% include "partials/icon.html" with name="link" size=16 cls="text-muted" %} Copy profile link
+            </button>
+            <div class="menu-divider"></div>
+            <button type="button" @click="open = false; $dispatch('open-report', 'user')" class="menu-item text-danger">
+              {% include "partials/icon.html" with name="flag" size=16 %} Report @{{ profile_user.username }}
+            </button>
+          </div>
+        </div>
       {% endif %}
     </div>
+  </div>
+  {% if user != profile_user %}
+    {% url 'interactions:report_user' username=profile_user.username as report_url %}
+    {% with subject=profile_user.get_full_name|default:profile_user.username %}
+      {% include "partials/report_dialog.html" with key="user" url=report_url title="Report profile" subject=subject %}
+    {% endwith %}
+  {% endif %}
 
-    <!-- Info + action -->
-    <div class="flex-1 min-w-0">
-      <!-- Name row + button (button sits inside info column so it doesn't squash bio on mobile) -->
-      <div class="flex items-start justify-between gap-3 mb-2">
-        <div class="min-w-0">
-          <h1 class="text-lg sm:text-xl font-semibold text-neutral-100 leading-tight">{{ profile_user.get_full_name|default:profile_user.username }}</h1>
-          <p class="text-sm text-neutral-400">@{{ profile_user.username }}</p>
-        </div>
-        {% if user == profile_user %}
-          <a href="{% url 'accounts:settings_profile' %}"
-             class="text-xs border border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:border-neutral-500 px-3 py-1.5 rounded transition-colors shrink-0 mt-0.5">
-            Edit profile
-          </a>
-        {% elif user.is_authenticated %}
-          <div x-data="{
-            following: {{ is_following|yesno:'true,false' }},
-            toast: '',
-            toastVisible: false,
-            showToast(msg) {
-              this.toast = msg;
-              this.toastVisible = true;
-              setTimeout(() => { this.toastVisible = false; }, 2500);
-            },
-            async toggleFollow() {
-              const res = await fetch('{% url "interactions:follow" username=profile_user.username %}', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-              });
-              const data = await res.json();
-              this.following = data.following;
-              this.showToast(data.following ? 'Following {{ profile_user.username }}' : 'Unfollowed');
-            }
-          }">
-            <button @click="toggleFollow()" type="button"
-              class="text-xs border px-3 py-1.5 rounded transition-colors shrink-0 mt-0.5"
-              :class="following
-                ? 'border-neutral-600 text-neutral-300 hover:text-red-400 hover:border-red-900'
-                : 'border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:border-neutral-500'">
-              <span x-text="following ? 'Following' : 'Follow'"></span>
+  <h1 class="mt-4 text-2xl leading-tight font-bold tracking-tight text-fg">{{ profile_user.get_full_name|default:profile_user.username }}</h1>
+  <p class="text-[15px] text-muted">@{{ profile_user.username }}</p>
+
+  {% if profile_user.profile.bio %}
+    <p class="mt-3 text-[15px] leading-relaxed text-fg">{{ profile_user.profile.bio }}</p>
+  {% endif %}
+
+  {% if profile_user.profile.location or profile_user.profile.website or profile_user.profile.twitter or profile_user.profile.instagram %}
+    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted">
+      {% if profile_user.profile.location %}
+        <span class="inline-flex items-center gap-1.5">{% include "partials/icon.html" with name="map-pin" size=15 %}{{ profile_user.profile.location }}</span>
+      {% endif %}
+      {% if profile_user.profile.website %}
+        <a href="{{ profile_user.profile.website }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-fg">
+          {% include "partials/icon.html" with name="globe" size=15 %}{{ profile_user.profile.website|cut:"https://"|cut:"http://" }}
+        </a>
+      {% endif %}
+      {% if profile_user.profile.twitter %}
+        <a href="https://twitter.com/{{ profile_user.profile.twitter }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-fg">
+          {% include "partials/icon.html" with name="x-brand" size=13 %}@{{ profile_user.profile.twitter }}
+        </a>
+      {% endif %}
+      {% if profile_user.profile.instagram %}
+        <a href="https://instagram.com/{{ profile_user.profile.instagram }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 hover:text-fg">
+          {% include "partials/icon.html" with name="instagram" size=15 %}@{{ profile_user.profile.instagram }}
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- Stats -->
+  <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-[15px]" x-data="{ followersOpen: false }">
+    {% if user == profile_user %}
+      <button type="button" @click="followersOpen = true" class="cursor-pointer hover:underline">
+        <span class="font-bold text-fg">{{ follower_count }}</span> <span class="text-muted">follower{{ follower_count|pluralize }}</span>
+      </button>
+    {% else %}
+      <span><span class="font-bold text-fg">{{ follower_count }}</span> <span class="text-muted">follower{{ follower_count|pluralize }}</span></span>
+    {% endif %}
+    <span><span class="font-bold text-fg">{{ posts|length }}</span> <span class="text-muted">post{{ posts|length|pluralize }}</span></span>
+    <span><span class="font-bold text-fg">{{ total_likes }}</span> <span class="text-muted">like{{ total_likes|pluralize }}</span></span>
+
+    {% if user == profile_user %}
+      <!-- Followers modal -->
+      <div x-show="followersOpen" x-cloak x-transition.opacity.duration.150ms
+           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+           @keydown.escape.window="followersOpen = false">
+        <div class="w-full max-w-sm overflow-hidden rounded-xl border border-line bg-raised shadow-2xl" @click.outside="followersOpen = false">
+          <div class="flex items-center justify-between border-b border-line px-5 py-4">
+            <h2 class="text-[17px] font-bold text-fg">Followers</h2>
+            <button type="button" @click="followersOpen = false" class="icon-btn -mr-2" aria-label="Close">
+              {% include "partials/icon.html" with name="x" size=18 %}
             </button>
-            <div x-show="toastVisible" x-cloak
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 translate-y-1"
-                 x-transition:enter-end="opacity-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 translate-y-1"
-                 class="fixed bottom-6 right-6 z-50 bg-neutral-700 border border-neutral-600 text-neutral-100 text-sm px-4 py-2.5 rounded-lg shadow-lg pointer-events-none">
-              <span x-text="toast"></span>
-            </div>
+          </div>
+          <div class="max-h-80 overflow-y-auto py-1">
+            {% for follow in followers_list %}
+              <a href="{% url 'accounts:profile' username=follow.follower.username %}" class="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-tint">
+                {% include "partials/avatar.html" with u=follow.follower size="size-9 text-xs" %}
+                <span class="min-w-0">
+                  <span class="block truncate text-[15px] font-semibold text-fg">{{ follow.follower.get_full_name|default:follow.follower.username }}</span>
+                  <span class="block truncate text-[13px] text-muted">@{{ follow.follower.username }}</span>
+                </span>
+              </a>
+            {% empty %}
+              <p class="px-5 py-8 text-center text-sm text-muted">No followers yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</header>
+
+<!-- Tabs -->
+<div x-data="{ tab: 'activity' }" class="mt-6">
+  <div class="flex gap-7 border-b border-line" role="tablist">
+    <button type="button" role="tab" class="tab" @click="tab = 'activity'" :aria-selected="(tab === 'activity').toString()" aria-selected="true">
+      Activity <span class="ml-1 text-muted">{{ posts|length }}</span>
+    </button>
+    {% if user == profile_user %}
+      <button type="button" role="tab" class="tab" @click="tab = 'drafts'" :aria-selected="(tab === 'drafts').toString()" aria-selected="false">
+        Drafts <span class="ml-1 text-muted">{{ draft_essays|length }}</span>
+      </button>
+    {% endif %}
+    <button type="button" role="tab" class="tab" @click="tab = 'liked'" :aria-selected="(tab === 'liked').toString()" aria-selected="false">
+      Liked <span class="ml-1 text-muted">{{ liked_essays|length }}</span>
+    </button>
+  </div>
+
+  <!-- Activity: articles and notes, newest first -->
+  <section x-show="tab === 'activity'" role="tabpanel">
+    {% for essay in posts %}
+      {% include "essays/partials/essay_card.html" with hide_follow=True %}
+    {% empty %}
+      <div class="py-16 text-center">
+        <p class="text-sm text-muted">No posts yet.</p>
+        {% if user == profile_user %}
+          <div class="mt-5 flex justify-center gap-2">
+            <a href="{% url 'essays:note_new' %}" class="btn btn-outline">Post a note</a>
+            <a href="{% url 'essays:write' %}" class="btn btn-accent">Write an article</a>
           </div>
         {% endif %}
       </div>
+    {% endfor %}
+  </section>
 
-      {% if profile_user.profile.bio %}
-        <p class="text-sm text-neutral-400 leading-relaxed mb-3">{{ profile_user.profile.bio }}</p>
-      {% endif %}
-
-      <!-- Socials -->
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-        {% if profile_user.profile.location %}
-          <span class="flex items-center gap-1 text-xs text-neutral-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
-            </svg>
-            {{ profile_user.profile.location }}
-          </span>
-        {% endif %}
-        {% if profile_user.profile.website %}
-          <a href="{{ profile_user.profile.website }}" target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-100 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-            {{ profile_user.profile.website|cut:"https://"|cut:"http://" }}
+  {% if user == profile_user %}
+    <!-- Drafts -->
+    <section x-show="tab === 'drafts'" x-cloak role="tabpanel">
+      {% for essay in draft_essays %}
+        <article class="flex items-start gap-4 border-b border-line py-5">
+          <a href="{% url 'essays:edit' username=profile_user.username slug=essay.slug %}" class="group min-w-0 flex-1">
+            <h3 class="text-[17px] leading-snug font-bold text-fg group-hover:underline">{{ essay.title }}</h3>
+            <p class="mt-1 line-clamp-2 text-[15px] leading-relaxed text-fg/85">{% if essay.excerpt %}{{ essay.excerpt }}{% else %}{{ essay.content|plain_text|truncatewords:40 }}{% endif %}</p>
+            <p class="mt-2 text-[13px] text-muted">Draft · created {{ essay.created_at|short_date }}</p>
           </a>
-        {% endif %}
-        {% if profile_user.profile.twitter %}
-          <a href="https://twitter.com/{{ profile_user.profile.twitter }}" target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-100 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-            @{{ profile_user.profile.twitter }}
-          </a>
-        {% endif %}
-        {% if profile_user.profile.instagram %}
-          <a href="https://instagram.com/{{ profile_user.profile.instagram }}" target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-100 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-            </svg>
-            @{{ profile_user.profile.instagram }}
-          </a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+          <div class="flex shrink-0 items-center gap-2">
+            <a href="{% url 'essays:edit' username=profile_user.username slug=essay.slug %}" class="btn btn-sm btn-outline">Edit</a>
+            <form method="post" action="{% url 'essays:edit' username=profile_user.username slug=essay.slug %}">
+              {% csrf_token %}
+              <button type="submit" name="action" value="publish" class="btn btn-sm btn-accent">Publish</button>
+            </form>
+          </div>
+        </article>
+      {% empty %}
+        <p class="py-16 text-center text-sm text-muted">No drafts yet.</p>
+      {% endfor %}
+    </section>
+  {% endif %}
 
-  <!-- Stats -->
-  <div class="flex items-center gap-8 mb-8" x-data="{ followersOpen: false }">
-    <div>
-      <span class="text-sm font-semibold text-neutral-100">{{ essays|length }}</span>
-      <span class="text-sm text-neutral-500 ml-1">essays</span>
-    </div>
-    <div>
-      {% if user == profile_user %}
-        <button @click="followersOpen = true" type="button"
-                class="flex items-baseline gap-1 hover:opacity-70 transition-opacity">
-          <span class="text-sm font-semibold text-neutral-100">{{ follower_count }}</span>
-          <span class="text-sm text-neutral-500">followers</span>
-        </button>
-      {% else %}
-        <span class="text-sm font-semibold text-neutral-100">{{ follower_count }}</span>
-        <span class="text-sm text-neutral-500 ml-1">followers</span>
-      {% endif %}
-    </div>
-    <div>
-      <span class="text-sm font-semibold text-neutral-100">{{ total_likes }}</span>
-      <span class="text-sm text-neutral-500 ml-1">likes</span>
-    </div>
-
-    {% if user == profile_user %}
-    <!-- Followers modal -->
-    <div x-show="followersOpen" x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0">
-      <div class="absolute inset-0 bg-black/60" @click="followersOpen = false"></div>
-      <div class="relative z-10 w-full max-w-sm rounded-xl border overflow-hidden"
-           style="background-color: var(--bg-surface); border-color: var(--border-base);">
-        <!-- Modal header -->
-        <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color: var(--border-base);">
-          <h2 class="text-sm font-semibold text-neutral-100">Followers</h2>
-          <button @click="followersOpen = false" type="button"
-                  class="text-neutral-500 hover:text-neutral-100 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 6 6 18M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-        <!-- Follower list -->
-        <div class="overflow-y-auto max-h-80">
-          {% for follow in followers_list %}
-            <a href="{% url 'accounts:profile' username=follow.follower.username %}"
-               @click="followersOpen = false"
-               class="flex items-center gap-3 px-5 py-3 transition-colors"
-               onmouseenter="this.style.backgroundColor='var(--bg-elevated)'"
-               onmouseleave="this.style.backgroundColor=''">
-              <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-neutral-200 shrink-0 overflow-hidden"
-                   style="background-color: var(--bg-muted);">
-                {% if follow.follower.profile.photo %}
-                  <img src="{{ follow.follower.profile.photo.url }}"
-                       alt="{{ follow.follower.username }}" class="w-full h-full object-cover">
-                {% else %}
-                  {{ follow.follower.first_name|first|upper }}{{ follow.follower.last_name|first|upper }}
-                {% endif %}
-              </div>
-              <div class="min-w-0">
-                <p class="text-sm font-medium text-neutral-200 truncate">
-                  {{ follow.follower.get_full_name|default:follow.follower.username }}
-                </p>
-                <p class="text-xs text-neutral-500 truncate">@{{ follow.follower.username }}</p>
-              </div>
-            </a>
-          {% empty %}
-            <p class="px-5 py-6 text-sm text-neutral-500 text-center">No followers yet.</p>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-    {% endif %}
-  </div>
-
-  <!-- Tabs -->
-  <div x-data="{ tab: 'essays' }">
-    <div class="flex border-b border-neutral-800 mb-8">
-      <button @click="tab = 'essays'"
-        class="text-xs uppercase tracking-widest pb-3 mr-7 border-b-2 -mb-px transition-colors"
-        :class="tab === 'essays' ? 'text-neutral-100 border-neutral-400' : 'text-neutral-400 border-transparent hover:text-neutral-200'">
-        Essays
-        <span class="ml-1.5 text-neutral-500 normal-case tracking-normal">{{ essays|length }}</span>
-      </button>
-      {% if user == profile_user %}
-        <button @click="tab = 'drafts'"
-          class="text-xs uppercase tracking-widest pb-3 mr-7 border-b-2 -mb-px transition-colors"
-          :class="tab === 'drafts' ? 'text-neutral-100 border-neutral-400' : 'text-neutral-400 border-transparent hover:text-neutral-200'">
-          Drafts
-          <span class="ml-1.5 text-neutral-500 normal-case tracking-normal">{{ draft_essays|length }}</span>
-        </button>
-        <button @click="tab = 'bookmarks'"
-          class="text-xs uppercase tracking-widest pb-3 border-b-2 -mb-px transition-colors"
-          :class="tab === 'bookmarks' ? 'text-neutral-100 border-neutral-400' : 'text-neutral-400 border-transparent hover:text-neutral-200'">
-          Bookmarks
-          <span class="ml-1.5 text-neutral-500 normal-case tracking-normal">{{ bookmarked_essays|length }}</span>
-        </button>
-      {% endif %}
-    </div>
-
-    <!-- Essays tab -->
-    <div x-show="tab === 'essays'">
-      {% if essays %}
-        <div class="flex flex-col divide-y divide-neutral-800">
-          {% for essay in essays %}
-            <article class="py-6 first:pt-0">
-              <a href="{% url 'essays:detail' username=profile_user.username slug=essay.slug %}" class="group block">
-                <h3 class="font-prose text-base font-medium text-neutral-100 group-hover:text-neutral-300 transition-colors leading-snug">{{ essay.title }}</h3>
-                {% if essay.excerpt %}
-                  <p class="text-sm text-neutral-400 mt-1.5 line-clamp-2 leading-relaxed">{{ essay.excerpt }}</p>
-                {% endif %}
-                <!-- <p class="text-xs text-neutral-500 mt-3">{{ essay.published_at|date:"N j, Y" }} • {{ essay.read_time }} min read</p> -->
-                <div class="flex items-center gap-2 mt-1.5">
-                  <span class="text-xs text-neutral-500">{{ essay.published_at|date:"N j, Y" }}</span>
-                  {% if essay.comments.count %}
-                    <span class="text-neutral-600">•</span>
-                    <span class="flex items-center gap-1 text-xs text-neutral-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                      </svg>
-                      {{ essay.comments.count }}
-                    </span>
-                  {% endif %}
-                </div>
-              </a>
-            </article>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="text-sm text-neutral-400">No published essays yet.</p>
-      {% endif %}
-    </div>
-
-    <!-- Drafts tab (owner only) -->
-    {% if user == profile_user %}
-    <div x-show="tab === 'drafts'">
-      {% if draft_essays %}
-        <div class="flex flex-col divide-y divide-neutral-800">
-          {% for essay in draft_essays %}
-            <article class="py-6 first:pt-0">
-              <div class="flex items-start justify-between gap-4">
-                <a href="{% url 'essays:edit' username=profile_user.username slug=essay.slug %}" class="group flex-1 min-w-0">
-                  <h3 class="font-prose text-base font-medium text-neutral-100 group-hover:text-neutral-300 transition-colors leading-snug">{{ essay.title }}</h3>
-                  {% if essay.excerpt %}
-                    <p class="text-sm text-neutral-400 mt-1.5 line-clamp-2 leading-relaxed">{{ essay.excerpt }}</p>
-                  {% endif %}
-                  <p class="text-xs text-neutral-500 mt-3">Created {{ essay.created_at|date:"N j, Y" }}</p>
-                </a>
-                <form method="post" action="{% url 'essays:edit' username=profile_user.username slug=essay.slug %}" class="shrink-0">
-                  {% csrf_token %}
-                  <button type="submit" name="action" value="publish"
-                          class="text-xs border border-neutral-600 text-neutral-300 hover:border-neutral-400 hover:text-neutral-100 px-3 py-1.5 rounded transition-colors">
-                    Publish
-                  </button>
-                </form>
-              </div>
-            </article>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="text-sm text-neutral-400">No drafts yet.</p>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    <!-- Bookmarks tab (owner only) -->
-    {% if user == profile_user %}
-    <div x-show="tab === 'bookmarks'">
-      {% if bookmarked_essays %}
-        <div class="flex flex-col divide-y divide-neutral-800">
-          {% for essay in bookmarked_essays %}
-            <article class="py-6 first:pt-0">
-              <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}" class="group block">
-                <h3 class="font-prose text-base font-medium text-neutral-100 group-hover:text-neutral-300 transition-colors leading-snug">{{ essay.title }}</h3>
-                {% if essay.excerpt %}
-                  <p class="text-sm text-neutral-400 mt-1.5 line-clamp-2 leading-relaxed">{{ essay.excerpt }}</p>
-                {% endif %}
-                <div class="flex items-center gap-2 mt-1.5">
-                  <span class="text-xs text-neutral-500">{{ essay.published_at|date:"N j, Y" }}</span>
-                  <span class="text-neutral-600">•</span>
-                  <span class="text-xs text-neutral-500">{{ essay.read_time }} min read</span>
-                  {% if essay.author != profile_user %}
-                    <span class="text-neutral-600">•</span>
-                    <a href="{% url 'accounts:profile' username=essay.author.username %}"
-                       class="text-xs text-neutral-500 hover:text-neutral-200 transition-colors">
-                      {{ essay.author.first_name }} {{ essay.author.last_name }}
-                    </a>
-                  {% endif %}
-                </div>
-              </a>
-            </article>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="text-sm text-neutral-400">No bookmarked essays yet.</p>
-      {% endif %}
-    </div>
-    {% endif %}
-  </div>
+  <!-- Liked: posts this member liked -->
+  <section x-show="tab === 'liked'" x-cloak role="tabpanel">
+    {% for essay in liked_essays %}
+      {% include "essays/partials/essay_card.html" %}
+    {% empty %}
+      <p class="py-16 text-center text-sm text-muted">
+        {% if user == profile_user %}Posts you like will show up here.{% else %}{{ profile_user.first_name|default:profile_user.username }} hasn't liked anything yet.{% endif %}
+      </p>
+    {% endfor %}
+  </section>
 </div>
 {% endblock %}

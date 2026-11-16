@@ -1,6 +1,5 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
-from django.urls import reverse
 from django.utils import timezone
 
 User = get_user_model()
@@ -8,47 +7,14 @@ User = get_user_model()
 USER_FIELDS = {"first_name", "last_name"}
 
 
-def authenticate_user(credential: str, password: str, request=None):
-    return authenticate(request, username=credential, password=password)
-
-
-def apply_for_membership(username: str, email: str, password: str, motivation: str) -> User:
-    if User.objects.filter(username=username).exists():
-        raise ValueError("Username is already taken.")
-    if User.objects.filter(email=email).exists():
-        raise ValueError("Email is already registered.")
-    user = User.objects.create_user(
-        username=username, email=email, password=password, is_active=False
-    )
-    user.profile.motivation = motivation
-    user.profile.save(update_fields=["motivation"])
-    return user
-
-
-def send_approval_email(user: User, request=None) -> None:
-    if request:
-        login_url = request.build_absolute_uri(reverse("accounts:login"))
-    else:
-        login_url = "/accounts/login/"
-    send_mail(
-        subject="Your account has been approved — Papuan Thought",
-        message=(
-            f"Hi {user.username},\n\n"
-            "Your application to join Papuan Thought has been approved.\n"
-            f"You can now sign in and start writing at: {login_url}\n\n"
-            "— The Papuan Thought Team"
-        ),
-        from_email=None,
-        recipient_list=[user.email],
-        fail_silently=True,
-    )
-
-
-def approve_user(user: User, request=None) -> User:
-    user.is_active = True
-    user.save(update_fields=["is_active"])
-    send_approval_email(user, request)
-    return user
+def authenticate_by_email(email: str, password: str, request=None):
+    """Sign-in for the site: email + password only (usernames are not accepted)."""
+    if not email or not password:
+        return None
+    user = User.objects.filter(email__iexact=email).first()
+    if user is None:
+        return None
+    return authenticate(request, username=user.username, password=password)
 
 
 def accept_invitation(token: str, email: str, username: str, password: str) -> User:

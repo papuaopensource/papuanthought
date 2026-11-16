@@ -1,4 +1,4 @@
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from unfold.admin import ModelAdmin
@@ -6,15 +6,19 @@ from unfold.contrib.inlines.admin import StackedInline
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 
 from .models import User, Profile, Invitation
-from . import services
 
 
 class ProfileInline(StackedInline):
+    """Shown as a "Profile" tab on the account page (profiles have no admin page of their own)."""
+
     model = Profile
+    tab = True
+    verbose_name = "Profile"
+    verbose_name_plural = "Profile"
     can_delete = False
     extra = 0
-    readonly_fields = ("motivation",)
-    fields = ("bio", "location", "website", "twitter", "instagram", "motivation")
+    max_num = 1
+    fields = ("photo", "bio", "location", "website", "twitter", "instagram")
 
 
 @admin.register(User)
@@ -22,52 +26,10 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
     change_password_form = AdminPasswordChangeForm
-    list_display = ("username", "email", "motivation_preview", "is_active", "is_staff", "date_joined")
+    list_display = ("username", "email", "is_active", "is_staff", "date_joined")
     list_filter = ("is_active", "is_staff")
     search_fields = ("username", "email")
-    actions = ["approve_users"]
     inlines = [ProfileInline]
-
-    @admin.display(description="Motivation")
-    def motivation_preview(self, obj):
-        try:
-            text = obj.profile.motivation
-            if text and len(text) > 80:
-                return text[:80] + "…"
-            return text or "—"
-        except Exception:
-            return "—"
-
-    def save_model(self, request, obj, form, change):
-        if change:
-            try:
-                was_inactive = not User.objects.filter(pk=obj.pk, is_active=True).exists()
-            except Exception:
-                was_inactive = False
-            super().save_model(request, obj, form, change)
-            if was_inactive and obj.is_active:
-                services.send_approval_email(obj, request)
-        else:
-            super().save_model(request, obj, form, change)
-
-    @admin.action(description="Approve selected users")
-    def approve_users(self, request, queryset):
-        approved = 0
-        for user in queryset.filter(is_active=False):
-            services.approve_user(user, request)
-            approved += 1
-        if approved:
-            self.message_user(request, f"{approved} account(s) approved and notification email(s) sent.", messages.SUCCESS)
-        else:
-            self.message_user(request, "No pending accounts were selected.", messages.WARNING)
-
-
-@admin.register(Profile)
-class ProfileAdmin(ModelAdmin):
-    list_display = ("user", "location", "created_at")
-    search_fields = ("user__username", "user__email")
-    readonly_fields = ("motivation",)
-    raw_id_fields = ("user",)
 
 
 @admin.register(Invitation)

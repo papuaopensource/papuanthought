@@ -1,125 +1,77 @@
 {% extends "main_layout.html" %}
 
-{% block title %}Settings — Papuan Thought{% endblock %}
+{% block title %}Settings - Papuan Thought{% endblock %}
 
 {% block content %}
+<h1 class="text-2xl font-bold tracking-tight text-fg">Settings</h1>
 
-<!-- User card -->
-<div class="flex items-center gap-4 mb-10">
-  <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold text-neutral-200 shrink-0 overflow-hidden" style="background-color: var(--bg-muted);">
-    {% if user.profile.photo %}
-      <img src="{{ user.profile.photo.url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
-    {% else %}
-      {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-    {% endif %}
-  </div>
-  <div class="min-w-0">
-    <p class="text-sm font-medium text-neutral-200 truncate">{{ user.get_full_name|default:user.username }}</p>
-    <p class="text-xs text-neutral-500 truncate">{{ user.email }}</p>
-  </div>
+<!-- Account -->
+<a href="{% url 'accounts:profile' username=user.username %}" class="card mt-6 flex items-center gap-4 p-4 transition-colors hover:bg-tint">
+  {% include "partials/avatar.html" with u=user size="size-12 text-base" %}
+  <span class="min-w-0 flex-1">
+    <span class="block truncate text-[15px] font-semibold text-fg">{{ user.get_full_name|default:user.username }}</span>
+    <span class="block truncate text-[13px] text-muted">{{ user.email }}</span>
+  </span>
+  {% include "partials/icon.html" with name="chevron-right" size=18 cls="text-muted" %}
+</a>
+
+<h2 class="mt-8 mb-2 text-[13px] font-semibold text-muted">Account</h2>
+<div class="card divide-y divide-line overflow-hidden">
+  <a href="{% url 'accounts:settings_profile' %}" class="flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-tint">
+    <span>
+      <span class="block text-[15px] font-medium text-fg">Edit profile</span>
+      <span class="block text-[13px] text-muted">Name, bio, photo, location, and social links</span>
+    </span>
+    {% include "partials/icon.html" with name="chevron-right" size=18 cls="text-muted" %}
+  </a>
+  <a href="{% url 'accounts:settings_password' %}" class="flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-tint">
+    <span>
+      <span class="block text-[15px] font-medium text-fg">Change password</span>
+      <span class="block text-[13px] text-muted">Update your account password</span>
+    </span>
+    {% include "partials/icon.html" with name="chevron-right" size=18 cls="text-muted" %}
+  </a>
 </div>
 
-<p class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Settings</p>
-
-<!-- Nav rows -->
-<div class="rounded-xl overflow-hidden border border-(--border-base)" style="background-color: var(--bg-surface);">
-
-  <a href="{% url 'accounts:settings_profile' %}"
-     class="flex items-center justify-between px-5 py-4 hover:bg-(--bg-hover) transition-colors group border-b border-(--border-base)">
-    <div>
-      <p class="text-sm font-medium text-neutral-200 group-hover:text-neutral-100 transition-colors">Edit profile</p>
-      <p class="text-xs text-neutral-500 mt-0.5">Name, bio, photo, location, and social links</p>
-    </div>
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-         class="text-neutral-700 group-hover:text-neutral-400 transition-colors shrink-0">
-      <path d="M5 12h14m-7-7l7 7l-7 7"/>
-    </svg>
-  </a>
-
-  <a href="{% url 'accounts:settings_password' %}"
-     class="flex items-center justify-between px-5 py-4 hover:bg-(--bg-hover) transition-colors group border-b border-(--border-base)">
-    <div>
-      <p class="text-sm font-medium text-neutral-200 group-hover:text-neutral-100 transition-colors">Change password</p>
-      <p class="text-xs text-neutral-500 mt-0.5">Update your account password</p>
-    </div>
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-         class="text-neutral-700 group-hover:text-neutral-400 transition-colors shrink-0">
-      <path d="M5 12h14m-7-7l7 7l-7 7"/>
-    </svg>
-  </a>
-
-  <a href="{% url 'accounts:profile' username=user.username %}"
-     class="flex items-center justify-between px-5 py-4 hover:bg-(--bg-hover) transition-colors group">
-    <div>
-      <p class="text-sm font-medium text-neutral-200 group-hover:text-neutral-100 transition-colors">View profile</p>
-      <p class="text-xs text-neutral-500 mt-0.5">See how others see your public page</p>
-    </div>
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-         class="text-neutral-700 group-hover:text-neutral-400 transition-colors shrink-0">
-      <path d="M5 12h14m-7-7l7 7l-7 7"/>
-    </svg>
-  </a>
-
-</div>
-
-<!-- Appearance -->
-<p class="text-xs uppercase tracking-widest text-neutral-500 mb-3 mt-10">Appearance</p>
-<div class="rounded-xl overflow-hidden border border-(--border-base)" style="background-color: var(--bg-surface);">
-  <div class="flex items-center justify-between px-5 py-4">
-    <div>
-      <p class="text-sm font-medium text-neutral-200">Theme</p>
-      <p class="text-xs text-neutral-500 mt-0.5">Switch between dark and light mode</p>
-    </div>
-    <button @click="toggleTheme()" type="button"
-            class="flex items-center gap-2 text-xs px-3 py-1.5 rounded-md border transition-colors shrink-0"
-            style="border-color:var(--border-base); background-color:var(--bg-active); color:var(--color-body);">
-      <svg x-show="theme === 'dark'" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-      </svg>
-      <svg x-show="theme === 'light'" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="4"/>
-        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-      </svg>
-      <span x-text="theme === 'dark' ? 'Dark' : 'Light'"></span>
+<h2 class="mt-8 mb-2 text-[13px] font-semibold text-muted">Appearance</h2>
+<div class="card flex items-center justify-between gap-4 px-4 py-3.5">
+  <span>
+    <span class="block text-[15px] font-medium text-fg">Theme</span>
+    <span class="block text-[13px] text-muted">Dark is the default</span>
+  </span>
+  <div class="inline-flex rounded-lg border border-line p-0.5" role="radiogroup" aria-label="Theme">
+    <button type="button" role="radio" @click="$store.theme.set('dark')" :aria-checked="($store.theme.value === 'dark').toString()"
+            class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors"
+            :class="$store.theme.value === 'dark' ? 'bg-press text-fg' : 'text-muted hover:text-fg'">
+      {% include "partials/icon.html" with name="moon" size=14 %} Dark
+    </button>
+    <button type="button" role="radio" @click="$store.theme.set('light')" :aria-checked="($store.theme.value === 'light').toString()"
+            class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors"
+            :class="$store.theme.value === 'light' ? 'bg-press text-fg' : 'text-muted hover:text-fg'">
+      {% include "partials/icon.html" with name="sun" size=14 %} Light
     </button>
   </div>
 </div>
 
 <!-- Danger zone -->
-<div x-data="{ confirm: false }" class="mt-10">
-  <p class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Danger zone</p>
-  <div class="rounded-xl overflow-hidden border border-(--border-base)" style="background-color: var(--bg-surface);">
-    <div class="px-5 py-4">
-      <div x-show="!confirm" class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium text-neutral-200">Delete account</p>
-          <p class="text-xs text-neutral-500 mt-0.5">Permanently delete your account and all essays</p>
-        </div>
-        <button type="button" @click="confirm = true"
-          class="text-xs border border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:border-neutral-500 px-3 py-1.5 rounded transition-colors shrink-0">
-          Delete account
-        </button>
-      </div>
-      <div x-show="confirm" x-cloak class="flex flex-col gap-4">
-        <p class="text-sm text-neutral-400">Enter your password to permanently delete your account.</p>
-        <form method="post" action="{% url 'accounts:settings_delete' %}" class="flex flex-col gap-3 max-w-xs">
-          {% csrf_token %}
-          <input name="password" type="password" required placeholder="Your current password"
-            class="bg-transparent border-b border-neutral-700 py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-500 transition-colors" />
-          <div class="flex items-center gap-4">
-            <button type="submit"
-              class="text-xs border border-neutral-700 text-neutral-400 hover:text-red-400 hover:border-neutral-600 px-3 py-1.5 rounded transition-colors">
-              Yes, delete my account
-            </button>
-            <button type="button" @click="confirm = false"
-              class="text-xs text-neutral-500 hover:text-neutral-300 transition-colors">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+<h2 class="mt-8 mb-2 text-[13px] font-semibold text-muted">Danger zone</h2>
+<div x-data="{ confirm: false }" class="card px-4 py-3.5">
+  <div x-show="!confirm" class="flex items-center justify-between gap-4">
+    <span>
+      <span class="block text-[15px] font-medium text-fg">Delete account</span>
+      <span class="block text-[13px] text-muted">Permanently delete your account and all essays</span>
+    </span>
+    <button type="button" @click="confirm = true" class="btn btn-sm btn-outline shrink-0 text-danger">Delete account</button>
   </div>
+  <form x-show="confirm" x-cloak method="post" action="{% url 'accounts:settings_delete' %}" class="flex flex-col gap-3">
+    {% csrf_token %}
+    <p class="text-sm text-fg">Enter your password to permanently delete your account.</p>
+    <label for="delete-password" class="sr-only">Current password</label>
+    <input id="delete-password" name="password" type="password" required placeholder="Your current password" autocomplete="current-password" class="input max-w-xs">
+    <div class="flex items-center gap-2">
+      <button type="submit" class="btn btn-sm btn-danger">Yes, delete my account</button>
+      <button type="button" @click="confirm = false" class="btn btn-sm btn-ghost">Cancel</button>
+    </div>
+  </form>
 </div>
-
 {% endblock %}
