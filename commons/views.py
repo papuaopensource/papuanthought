@@ -2,14 +2,7 @@ from django.views import View
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 
-from .models import ContactMessage
-
-
-class LandingView(View):
-    def get(self, request):
-        if request.user.is_authenticated:
-            return redirect("essays:feed")
-        return render(request, "commons/landing.html")
+from .models import Feedback
 
 
 class AboutView(TemplateView):
@@ -28,34 +21,41 @@ class GuidelinesView(TemplateView):
     template_name = "commons/guidelines.html"
 
 
-class ContactView(View):
-    template_name = "commons/contact.html"
+class FeedbackView(View):
+    """Members send ideas, bug reports and questions to the team."""
+
+    template_name = "commons/feedback.html"
 
     def get(self, request):
-        return render(request, self.template_name)
+        return render(request, self.template_name, {"categories": Feedback.CATEGORY_CHOICES})
 
     def post(self, request):
-        name = request.POST.get("name", "").strip()
-        email = request.POST.get("email", "").strip()
+        category = request.POST.get("category", "")
         message = request.POST.get("message", "").strip()
-
-        errors = {}
-        if not name:
-            errors["name"] = "Name is required."
-        if not email:
-            errors["email"] = "Email is required."
-        if not message:
-            errors["message"] = "Message is required."
-
-        if errors:
+        error = None
+        if category not in dict(Feedback.CATEGORY_CHOICES):
+            error = "Choose what your feedback is about."
+        elif not message:
+            error = "Write your feedback first."
+        if error:
             return render(request, self.template_name, {
-                "errors": errors,
-                "form_data": {"name": name, "email": email, "message": message},
+                "categories": Feedback.CATEGORY_CHOICES,
+                "error": error,
+                "category": category,
+                "message": message,
             })
 
-        ContactMessage.objects.create(name=name, email=email, message=message)
-        return redirect("commons:contact_success")
+        # The site is members-only, so the sender is always the signed-in user.
+        user = request.user
+        Feedback.objects.create(
+            user=user,
+            category=category,
+            name=(user.get_full_name() or user.username)[:150],
+            email=user.email,
+            message=message,
+        )
+        return redirect("commons:feedback_sent")
 
 
-class ContactSuccessView(TemplateView):
-    template_name = "commons/contact_success.html"
+class FeedbackSentView(TemplateView):
+    template_name = "commons/feedback_sent.html"
