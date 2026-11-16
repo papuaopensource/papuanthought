@@ -1,5 +1,7 @@
 from pathlib import Path
 from django.urls import reverse_lazy
+
+from interactions.badges import OpenReportsBadge
 from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -41,6 +43,9 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # The whole site is members-only: every view requires login unless it is
+    # wrapped in login_not_required() (see accounts/urls.py).
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "accounts.middleware.ProfileCompletionMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -84,7 +89,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "id-ID"
+LANGUAGE_CODE = "en-US"
 TIME_ZONE = "Asia/Jayapura"
 USE_I18N = True
 USE_TZ = True
@@ -131,7 +136,7 @@ EMAIL_USE_SSL = False
 EMAIL_TIMEOUT = 15
 
 UNFOLD = {
-    "SITE_TITLE": "The Papuan Thought Project",
+    "SITE_TITLE": "Papuan Thought",
     "SITE_HEADER": "Papuan Thought",
     "SITE_DESCRIPTION": "A platform for sharing thoughts and ideas from the Papuan community.",
     "SITE_URL": "/",
@@ -139,39 +144,41 @@ UNFOLD = {
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": False,
     "COLORS": {
+        # Neutral greys matching the site's dark palette (#161718 page, #1b1c1d cards).
         "base": {
             "50": "250 250 250",
             "100": "245 245 245",
-            "200": "229 229 229",
+            "200": "230 230 230",
             "300": "212 212 212",
             "400": "163 163 163",
-            "500": "115 115 115",
-            "600": "82 82 82",
-            "700": "64 64 64",
-            "800": "38 38 38",
-            "900": "23 23 23",
-            "950": "10 10 10",
+            "500": "133 133 133",
+            "600": "87 87 88",
+            "700": "54 55 55",
+            "800": "49 50 51",
+            "900": "27 28 29",
+            "950": "22 23 24",
         },
+        # Clay / terracotta, the site accent (#c96442 dark / #b4552f light).
         "primary": {
-            "50": "250 250 250",
-            "100": "245 245 245",
-            "200": "229 229 229",
-            "300": "212 212 212",
-            "400": "163 163 163",
-            "500": "115 115 115",
-            "600": "82 82 82",
-            "700": "64 64 64",
-            "800": "38 38 38",
-            "900": "23 23 23",
-            "950": "10 10 10",
+            "50": "251 241 237",
+            "100": "246 225 216",
+            "200": "239 197 180",
+            "300": "229 160 133",
+            "400": "217 119 87",
+            "500": "201 100 66",
+            "600": "180 85 47",
+            "700": "154 69 39",
+            "800": "124 56 33",
+            "900": "99 46 29",
+            "950": "54 24 14",
         },
         "font": {
             "subtle-light": "115 115 115",
-            "subtle-dark": "163 163 163",
-            "default-light": "64 64 64",
+            "subtle-dark": "133 133 133",
+            "default-light": "54 55 55",
             "default-dark": "212 212 212",
-            "important-light": "10 10 10",
-            "important-dark": "250 250 250",
+            "important-light": "22 23 24",
+            "important-dark": "238 238 238",
         },
     },
     "SIDEBAR": {
@@ -190,13 +197,13 @@ UNFOLD = {
                 ],
             },
             {
-                "title": "Essays",
+                "title": "Articles",
                 "separator": True,
                 "items": [
                     {
-                        "title": "All Essays",
+                        "title": "Articles",
                         "icon": "article",
-                        "link": reverse_lazy("admin:essays_essay_changelist"),
+                        "link": reverse_lazy("admin:essays_article_changelist"),
                     },
                     {
                         "title": "Tags",
@@ -210,17 +217,12 @@ UNFOLD = {
                 "separator": True,
                 "items": [
                     {
-                        "title": "Member Accounts",
+                        "title": "Accounts",
                         "icon": "group",
                         "link": reverse_lazy("admin:accounts_user_changelist"),
                     },
                     {
-                        "title": "Profiles",
-                        "icon": "person",
-                        "link": reverse_lazy("admin:accounts_profile_changelist"),
-                    },
-                    {
-                        "title": "Undangan",
+                        "title": "Invitations",
                         "icon": "mail",
                         "link": reverse_lazy("admin:accounts_invitation_changelist"),
                     },
@@ -236,7 +238,7 @@ UNFOLD = {
                         "link": reverse_lazy("admin:interactions_comment_changelist"),
                     },
                     {
-                        "title": "Reactions",
+                        "title": "Likes",
                         "icon": "favorite",
                         "link": reverse_lazy("admin:interactions_reaction_changelist"),
                     },
@@ -250,13 +252,25 @@ UNFOLD = {
                 ],
             },
             {
+                "title": "Moderation",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Reports",
+                        "icon": "flag",
+                        "link": reverse_lazy("admin:interactions_report_changelist"),
+                        "badge": OpenReportsBadge(),  # hidden when there are no open reports
+                    },
+                ],
+            },
+            {
                 "title": "Commons",
                 "separator": True,
                 "items": [
                     {
-                        "title": "Contact Messages",
-                        "icon": "mail",
-                        "link": reverse_lazy("admin:commons_contactmessage_changelist"),
+                        "title": "Feedback",
+                        "icon": "feedback",
+                        "link": reverse_lazy("admin:commons_feedback_changelist"),
                     },
                 ],
             },
