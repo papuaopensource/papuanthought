@@ -10,7 +10,7 @@ urlpatterns = [
     path("", include("accounts.urls"), name="accounts"),
     path("", include("commons.urls"), name="commons"),
     path("", include("interactions.urls"), name="interactions"),
-    path("", include("essays.urls"), name="essays"),
+    path("", include("posts.urls"), name="posts"),
 ]
 
 if settings.DEBUG:

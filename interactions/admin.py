@@ -68,11 +68,11 @@ class ReportAdmin(ModelAdmin):
     @display(description="Reported")
     def target_display(self, obj):
         if obj.article_id:
-            url = reverse("essays:detail", kwargs={"username": obj.article.author.username, "slug": obj.article.slug})
+            url = reverse("posts:detail", kwargs={"username": obj.article.author.username, "slug": obj.article.slug})
             return format_html('{}: <a href="{}" target="_blank" rel="noopener">{}</a>', obj.article.get_kind_display(), url, obj.article.display_title)
         if obj.comment_id:
             essay = obj.comment.article
-            url = reverse("essays:detail", kwargs={"username": essay.author.username, "slug": essay.slug})
+            url = reverse("posts:detail", kwargs={"username": essay.author.username, "slug": essay.slug})
             return format_html(
                 'Comment by @{} on <a href="{}#comment-{}" target="_blank" rel="noopener">{}</a>',
                 obj.comment.author.username, url, obj.comment_id, essay.display_title,

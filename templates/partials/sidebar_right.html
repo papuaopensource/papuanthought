@@ -3,7 +3,7 @@
   <section class="card p-4">
     <div class="flex items-center justify-between">
       <h2 class="card-title">Following</h2>
-      <a href="{% url 'essays:feed' %}?feed=following" class="text-sm text-muted transition-colors hover:text-fg">See posts</a>
+      <a href="{% url 'posts:feed' %}?feed=following" class="text-sm text-muted transition-colors hover:text-fg">See posts</a>
     </div>
     <div class="mt-4 grid grid-cols-3 gap-x-2 gap-y-4">
       {% for writer in following_list %}
@@ -43,7 +43,7 @@
   <ol class="mt-3 flex flex-col">
     {% for essay in trending_essays %}
       <li>
-        <a href="{% url 'essays:detail' username=essay.author.username slug=essay.slug %}"
+        <a href="{% url 'posts:detail' username=essay.author.username slug=essay.slug %}"
            class="group -mx-2 flex gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-tint">
           <span class="w-4 shrink-0 pt-0.5 text-sm font-bold text-accent tabular-nums">{{ forloop.counter }}</span>
           <span class="min-w-0">

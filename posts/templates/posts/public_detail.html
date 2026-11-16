@@ -1,0 +1,102 @@
+{% load post_filters %}<!DOCTYPE html>
+{% comment %}
+Reading page for a publicly shared article, shown to visitors who are not signed in.
+Only this article: no feed, profiles, comments or interactions.
+{% endcomment %}
+{% url 'posts:detail' username=essay.author.username slug=essay.slug as essay_url %}
+<html lang="en" data-theme="dark">
+<head>
+  {% include "partials/head.html" %}
+  <title>{{ essay.title }} - Papuan Thought</title>
+  {% with description=essay.excerpt|default:essay.content|plain_text|truncatewords:40 %}
+    <meta name="description" content="{{ description }}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Papuan Thought" />
+    <meta property="og:title" content="{{ essay.title }}" />
+    <meta property="og:description" content="{{ description }}" />
+    <meta property="og:url" content="{{ request.build_absolute_uri }}" />
+    {% if essay.cover_image %}
+      <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ essay.cover_image.url }}" />
+      <meta name="twitter:card" content="summary_large_image" />
+    {% else %}
+      <meta name="twitter:card" content="summary" />
+    {% endif %}
+    <meta property="article:author" content="{{ essay.author.get_full_name|default:essay.author.username }}" />
+  {% endwith %}
+</head>
+<body data-auth="false" data-login-url="{% url 'accounts:login' %}" class="min-h-screen">
+
+  <header class="sticky top-0 z-30 border-b border-line bg-page/95 backdrop-blur">
+    <div class="mx-auto flex h-14 max-w-[680px] items-center justify-between px-4">
+      {% include "partials/logo.html" with wordmark=True %}
+      <div class="flex items-center gap-1">
+        <button type="button" x-data @click="$store.theme.toggle()" class="icon-btn size-9" aria-label="Toggle theme">
+          <span x-show="$store.theme.value === 'dark'">{% include "partials/icon.html" with name="sun" size=18 %}</span>
+          <span x-show="$store.theme.value !== 'dark'" x-cloak>{% include "partials/icon.html" with name="moon" size=18 %}</span>
+        </button>
+        <a href="{% url 'accounts:login' %}?next={{ essay_url|urlencode }}" class="btn btn-sm btn-ghost text-fg">Sign in</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-[680px] px-4 pt-8 pb-16">
+    <article x-data="essayActions({ url: '{{ essay_url }}', title: '{{ essay.title|escapejs }}' })">
+      <!-- Byline (no profile link: profiles are members-only) -->
+      <div class="flex items-center gap-3">
+        {% include "partials/avatar.html" with u=essay.author size="size-10 text-sm" %}
+        <div class="min-w-0 leading-5">
+          <p class="truncate text-[15px] font-semibold text-fg">{{ essay.author.get_full_name|default:essay.author.username }}</p>
+          <p class="truncate text-sm text-muted">{{ essay.published_at|date:"M j, Y" }} · {{ essay.read_time }} min read</p>
+        </div>
+      </div>
+
+      <h1 class="mt-6 text-[30px] leading-tight font-bold tracking-tight text-fg sm:text-[36px]">{{ essay.title }}</h1>
+      {% if essay.excerpt %}
+        <p class="mt-2 text-lg leading-snug text-muted">{{ essay.excerpt }}</p>
+      {% endif %}
+      {% if essay.tags.all %}
+        <p class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm font-medium text-accent">
+          {% for tag in essay.tags.all %}<span>#{{ tag.name }}</span>{% endfor %}
+        </p>
+      {% endif %}
+      {% if essay.cover_image %}
+        <img src="{{ essay.cover_image.url }}" alt="" class="mt-6 w-full rounded-xl border border-line object-cover">
+      {% endif %}
+
+      <div id="essay-body" class="prose prose-essay mt-6 max-w-none">
+        {{ essay.content|render_markdown }}
+      </div>
+
+      <!-- Footer: likes + share -->
+      <div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-y border-line py-3">
+        <p class="inline-flex items-center gap-1.5 text-sm text-muted">
+          {% include "partials/icon.html" with name="heart" size=16 %}
+          {{ heart_count }} like{{ heart_count|pluralize }}
+        </p>
+        <div class="flex items-center gap-1">
+          <button type="button" @click="shareTo('whatsapp')" class="icon-btn" aria-label="Share on WhatsApp">{% include "partials/icon.html" with name="whatsapp" size=17 %}</button>
+          <button type="button" @click="shareTo('x')" class="icon-btn" aria-label="Share on X">{% include "partials/icon.html" with name="x-brand" size=15 %}</button>
+          <button type="button" @click="copyLink()" class="icon-btn" aria-label="Copy link">{% include "partials/icon.html" with name="link" size=17 %}</button>
+        </div>
+      </div>
+    </article>
+
+    <!-- About the platform -->
+    <section class="card mt-10 p-5">
+      <div class="flex items-start gap-3">
+        {% include "partials/logo.html" %}
+        <div>
+          <h2 class="text-[17px] font-bold text-fg">Shared from Papuan Thought</h2>
+          <p class="mt-1 text-[15px] leading-relaxed text-muted">
+            An invite-only community where Papuans write about culture, society, identity and everyday life.
+            Members can like, discuss and read everything else.
+          </p>
+          <a href="{% url 'accounts:login' %}?next={{ essay_url|urlencode }}" class="btn btn-sm btn-accent mt-4">Sign in to join the discussion</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  {% include "partials/toast.html" %}
+</body>
+</html>

@@ -10,7 +10,7 @@ def sidebar_context(request):
     Everything is lazy: queries only run when a template actually renders
     the value, so pages without sidebars (login, landing) don't pay for them.
     """
-    from essays.models import Article
+    from posts.models import Article
     from interactions.models import Follow, Report
 
     User = get_user_model()

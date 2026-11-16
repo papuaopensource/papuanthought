@@ -6,7 +6,7 @@ app_name = "commons"
 
 urlpatterns = [
     # No public landing page: the root goes to the feed (or to login).
-    path("", RedirectView.as_view(pattern_name="essays:feed"), name="home"),
+    path("", RedirectView.as_view(pattern_name="posts:feed"), name="home"),
     path("about/", views.AboutView.as_view(), name="about"),
     path("privacy/", views.PrivacyView.as_view(), name="privacy"),
     path("terms/", views.TermsView.as_view(), name="terms"),

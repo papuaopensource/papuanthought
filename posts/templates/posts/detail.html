@@ -1,0 +1,280 @@
+{% extends "main_layout.html" %}
+{% load post_filters %}
+
+{% block title %}{{ essay.display_title }} - Papuan Thought{% endblock %}
+{% block description %}{% if essay.excerpt %}{{ essay.excerpt }}{% else %}{{ essay.content|plain_text|truncatewords:30 }}{% endif %}{% endblock %}
+
+{% block sidebar_top %}
+  <!-- About the author -->
+  <section class="card p-4">
+    <h2 class="card-title">Author</h2>
+    <div class="mt-3 flex items-center gap-3">
+      <a href="{% url 'accounts:profile' username=essay.author.username %}" class="flex min-w-0 flex-1 items-center gap-3">
+        {% include "partials/avatar.html" with u=essay.author size="size-11 text-sm" %}
+        <span class="min-w-0">
+          <span class="block truncate text-[15px] font-semibold text-fg hover:underline">{{ essay.author.get_full_name|default:essay.author.username }}</span>
+          <span class="block truncate text-[13px] text-muted">@{{ essay.author.username }}</span>
+        </span>
+      </a>
+      {% include "partials/follow_button.html" with target=essay.author variant="soft" %}
+    </div>
+    {% if essay.author.profile.bio %}
+      <p class="mt-3 line-clamp-3 text-sm leading-relaxed text-muted">{{ essay.author.profile.bio }}</p>
+    {% endif %}
+  </section>
+{% endblock %}
+
+{% block content %}
+{% url 'posts:detail' username=essay.author.username slug=essay.slug as essay_url %}
+<div x-data="essayPage({ isPublic: {{ essay.is_public|yesno:'true,false' }}, visibilityUrl: '{% url 'posts:visibility' username=essay.author.username slug=essay.slug %}', hearted: {{ is_hearted|yesno:'true,false' }}, hearts: {{ heart_count }}, reactUrl: '{% url 'interactions:react' article_id=essay.pk %}', url: '{{ essay_url }}', title: '{{ essay.display_title|escapejs }}' })">
+
+  <article>
+    <!-- Byline -->
+    <header class="flex items-center gap-3">
+      <a href="{% url 'accounts:profile' username=essay.author.username %}" class="shrink-0" tabindex="-1" aria-hidden="true">
+        {% include "partials/avatar.html" with u=essay.author size="size-10 text-sm" %}
+      </a>
+      <div class="min-w-0 flex-1 leading-5">
+        <a href="{% url 'accounts:profile' username=essay.author.username %}" class="block truncate text-[15px] font-semibold text-fg hover:underline">{{ essay.author.get_full_name|default:essay.author.username }}</a>
+        <p class="flex items-center gap-1.5 truncate text-sm text-muted">
+          <span class="truncate">@{{ essay.author.username }}{% if not essay.is_note %} · {{ essay.read_time }} min read{% endif %}</span>
+          <span x-show="isPublic" {% if not essay.is_public %}x-cloak{% endif %} class="badge shrink-0 gap-1" title="Anyone with the link can read this article">{% include "partials/icon.html" with name="globe" size=11 stroke="2.2" %} Public</span>
+        </p>
+      </div>
+      {% include "partials/follow_button.html" with target=essay.author variant="solid" %}
+      <div class="relative" x-data="{ open: false }" @keydown.escape="open = false">
+        <button type="button" @click="open = !open" class="icon-btn" aria-label="Post options">
+          {% include "partials/icon.html" with name="more" size=20 stroke="2.4" %}
+        </button>
+        <div x-show="open" x-cloak @click.outside="open = false" x-transition.opacity.duration.100ms class="menu top-full right-0 mt-1 w-56">
+          <button type="button" @click="open = false; copyLink()" class="menu-item">{% include "partials/icon.html" with name="link" size=16 cls="text-muted" %} Copy link</button>
+          {% if user == essay.author and not essay.is_note %}
+            <div class="menu-divider"></div>
+            <button type="button" x-show="!isPublic" @click="open = false; setPublic(true)" class="menu-item items-start">
+              {% include "partials/icon.html" with name="globe" size=16 cls="mt-0.5 text-muted" %}
+              <span><span class="block">Make public</span><span class="block text-xs text-muted">Anyone with the link can read it</span></span>
+            </button>
+            <button type="button" x-show="isPublic" x-cloak @click="open = false; setPublic(false)" class="menu-item items-start">
+              {% include "partials/icon.html" with name="lock" size=16 cls="mt-0.5 text-muted" %}
+              <span><span class="block">Make members-only</span><span class="block text-xs text-muted">The public link stops working</span></span>
+            </button>
+            <div class="menu-divider"></div>
+          {% endif %}
+          {% if user == essay.author %}
+            <a href="{% url 'posts:edit' username=essay.author.username slug=essay.slug %}" class="menu-item">{% include "partials/icon.html" with name="edit" size=16 cls="text-muted" %} Edit {{ essay.get_kind_display|lower }}</a>
+            <button type="button" @click="open = false; confirmEssayDelete = true" class="menu-item text-danger">{% include "partials/icon.html" with name="trash" size=16 %} Delete {{ essay.get_kind_display|lower }}</button>
+          {% else %}
+            <div class="menu-divider"></div>
+            <button type="button" @click="open = false; $dispatch('open-report', 'essay')" class="menu-item text-danger">{% include "partials/icon.html" with name="flag" size=16 %} Report {{ essay.get_kind_display|lower }}</button>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    {% if not essay.is_note %}
+    <!-- Title (articles only) -->
+    <h1 class="mt-5 text-[28px] leading-tight font-bold tracking-tight text-fg sm:text-[32px]">{{ essay.title }}</h1>
+    {% if essay.excerpt %}
+      <p class="mt-2 text-lg leading-snug text-muted">{{ essay.excerpt }}</p>
+    {% endif %}
+    {% if essay.tags.all %}
+      <div class="mt-3 flex flex-wrap gap-x-3 gap-y-1">
+        {% for tag in essay.tags.all %}
+          <a href="{% url 'posts:tag' slug=tag.slug %}" class="text-sm font-medium text-accent hover:text-accent-strong">#{{ tag.name }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if essay.cover_image %}
+      <img src="{{ essay.cover_image.url }}" alt="" class="mt-6 w-full rounded-xl border border-line object-cover">
+    {% endif %}
+    {% endif %}
+
+    <!-- Body (notes are text-only: images are stripped) -->
+    <div id="essay-body" class="prose prose-essay {% if essay.is_note %}mt-4{% else %}mt-6{% endif %} max-w-none">
+      {% if essay.is_note %}{{ essay.content|render_note }}{% else %}{{ essay.content|render_markdown }}{% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-8 flex items-center gap-6">
+      <button type="button" @click="toggleHeart()" class="action{% if is_hearted %} is-active{% endif %}"
+              :class="{ 'is-active': hearted }" :aria-pressed="hearted.toString()" aria-label="Like">
+        {% include "partials/icon.html" with name="heart" size=20 %}
+        <span x-text="hearts || ''">{% if heart_count %}{{ heart_count }}{% endif %}</span>
+      </button>
+      <a href="#comments" @click.prevent="openComposer()" class="action" aria-label="Reply">
+        {% include "partials/icon.html" with name="comment" size=20 %}
+        <span>{% if comment_count %}{{ comment_count }}{% endif %}</span>
+      </a>
+      <div class="relative" x-data="{ open: false }" @keydown.escape="open = false">
+        <button type="button" @click="open = !open" class="action" aria-label="Share">
+          {% include "partials/icon.html" with name="share" size=20 %}
+        </button>
+        <div x-show="open" x-cloak @click.outside="open = false" x-transition.opacity.duration.100ms class="menu bottom-full left-0 mb-2 w-64">
+          {% if not essay.is_note %}
+            <p class="flex items-start gap-2 px-4 pt-1.5 pb-2 text-xs text-muted">
+              <span x-show="isPublic" {% if not essay.is_public %}x-cloak{% endif %}>{% include "partials/icon.html" with name="globe" size=14 %}</span>
+              <span x-show="!isPublic" {% if essay.is_public %}x-cloak{% endif %}>{% include "partials/icon.html" with name="lock" size=14 %}</span>
+              <span x-text="isPublic ? 'Public: anyone with the link can read it.' : 'Members-only: people need to sign in to open the link.'">{% if essay.is_public %}Public: anyone with the link can read it.{% else %}Members-only: people need to sign in to open the link.{% endif %}</span>
+            </p>
+            <div class="menu-divider"></div>
+          {% endif %}
+          <button type="button" @click="open = false; shareTo('whatsapp')" class="menu-item">{% include "partials/icon.html" with name="whatsapp" size=16 cls="text-muted" %} WhatsApp</button>
+          <button type="button" @click="open = false; shareTo('x')" class="menu-item">{% include "partials/icon.html" with name="x-brand" size=16 cls="text-muted" %} X / Twitter</button>
+          <button type="button" @click="open = false; copyLink()" class="menu-item">{% include "partials/icon.html" with name="link" size=16 cls="text-muted" %} Copy link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-y border-line py-3 text-sm text-muted">
+      <p class="tabular-nums">
+        <span x-text="hearts + (hearts === 1 ? ' Like' : ' Likes')">{{ heart_count }} Like{{ heart_count|pluralize }}</span>
+        · {{ comment_count }} Comment{{ comment_count|pluralize }}
+        {% if user == essay.author %}· {{ essay.view_count }} View{{ essay.view_count|pluralize }}{% endif %}
+      </p>
+      <p><time datetime="{{ essay.published_at|date:'c' }}">{{ essay.published_at|date:"M j, Y \a\t g:i A" }}</time>{% if essay.is_edited %} · Edited{% endif %}</p>
+    </div>
+  </article>
+
+  <!-- Discussion -->
+  <section id="comments" class="mt-6 scroll-mt-20" aria-label="Comments">
+
+    <!-- Reply box -->
+    <form method="post" action="{% url 'interactions:comment' article_id=essay.pk %}"
+          class="card flex gap-3 px-4 py-3.5 transition-colors" :class="composerOpen && 'border-muted/60'">
+      {% csrf_token %}
+      <input type="hidden" name="quote" :value="quoteText">
+      {% include "partials/avatar.html" with u=user size="size-9 text-xs" %}
+      <div class="min-w-0 flex-1">
+        <div x-show="quoteText" x-cloak class="mb-2 flex items-start gap-2">
+          <blockquote class="line-clamp-3 flex-1 border-l-2 border-accent pl-3 text-sm text-muted italic" x-text="quoteText"></blockquote>
+          <button type="button" @click="quoteText = ''" class="icon-btn size-6 shrink-0" aria-label="Remove quote">
+            {% include "partials/icon.html" with name="x" size=14 stroke="2.2" %}
+          </button>
+        </div>
+        <textarea id="main-comment-textarea" name="content" required
+                  :rows="composerOpen ? 4 : 1" rows="1"
+                  @focus="composerOpen = true"
+                  placeholder="Leave a reply…"
+                  class="block w-full resize-none bg-transparent py-1.5 text-[17px] text-fg outline-none placeholder:text-muted"></textarea>
+        <div x-show="composerOpen" x-cloak class="mt-3 flex justify-end gap-2">
+          <button type="button" @click="composerOpen = false; quoteText = ''" class="btn btn-sm btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-accent">Post</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Sort -->
+    {% if comments %}
+      <div class="mt-5 flex items-center justify-between border-b border-line pb-3">
+        <p class="text-sm font-semibold text-fg">{{ comment_count }} comment{{ comment_count|pluralize }}</p>
+        <div class="flex items-center gap-1 text-[13px]">
+          <a href="?sort=popular#comments" class="rounded-full px-3 py-1 font-medium transition-colors {% if sort == 'popular' %}bg-press text-fg{% else %}text-muted hover:text-fg{% endif %}">Top</a>
+          <a href="?sort=latest#comments" class="rounded-full px-3 py-1 font-medium transition-colors {% if sort == 'latest' %}bg-press text-fg{% else %}text-muted hover:text-fg{% endif %}">Latest</a>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Threads -->
+    <div>
+      {% for comment in comments %}
+        {% with replies=comment.replies.all %}
+        <div class="border-b border-line py-5" x-data="{ replyOpen: false }">
+          {% if replies %}
+            {% include "posts/partials/comment.html" with c=comment thread=comment line=True is_reply=False %}
+          {% else %}
+            {% include "posts/partials/comment.html" with c=comment thread=comment line=False is_reply=False %}
+          {% endif %}
+
+          {% for reply in replies %}
+            {% if forloop.last %}
+              {% include "posts/partials/comment.html" with c=reply thread=comment line=False is_reply=True %}
+            {% else %}
+              {% include "posts/partials/comment.html" with c=reply thread=comment line=True is_reply=True %}
+            {% endif %}
+          {% endfor %}
+
+          <!-- Reply form -->
+          <form x-show="replyOpen" x-cloak method="post" action="{% url 'interactions:comment' article_id=essay.pk %}" class="mt-4 flex gap-3">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" value="{{ comment.pk }}">
+            <div class="flex w-9 shrink-0 justify-center">{% include "partials/avatar.html" with u=user size="size-7 text-[10px]" %}</div>
+            <div class="min-w-0 flex-1">
+              <textarea id="reply-{{ comment.pk }}" name="content" rows="2" required
+                        placeholder="Reply to {{ comment.author.first_name|default:comment.author.username }}…"
+                        class="input resize-none"></textarea>
+              <div class="mt-2 flex justify-end gap-2">
+                <button type="button" @click="replyOpen = false" class="btn btn-sm btn-ghost">Cancel</button>
+                <button type="submit" class="btn btn-sm btn-accent">Reply</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        {% endwith %}
+      {% empty %}
+        <p class="py-10 text-center text-sm text-muted">No comments yet. Be the first to share your thoughts.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Selection popover: quote a passage into the reply box -->
+  <div id="quote-popover" x-show="popover.show" x-cloak
+       :style="`position:fixed;left:${popover.x}px;top:${popover.y}px;transform:translateX(-50%)`"
+       class="z-50">
+    <button type="button" @click="quoteSelection()"
+            class="inline-flex items-center gap-1.5 rounded-full bg-fg px-3.5 py-2 text-[13px] font-semibold whitespace-nowrap text-page shadow-lg">
+      {% include "partials/icon.html" with name="quote" size=14 %}
+      Quote in reply
+    </button>
+  </div>
+
+  <!-- Report dialogs -->
+  {% if user != essay.author %}
+    {% url 'interactions:report_article' article_id=essay.pk as report_url %}
+    {% with report_title="Report "|add:essay.get_kind_display %}
+      {% include "partials/report_dialog.html" with key="essay" url=report_url title=report_title subject=essay.display_title %}
+    {% endwith %}
+  {% endif %}
+  {% if comments %}
+    {# One shared dialog; each comment passes its own URL and summary when opening it. #}
+    {% include "partials/report_dialog.html" with key="comment" url="" title="Report comment" subject="" %}
+  {% endif %}
+
+  <!-- Delete post -->
+  {% if user == essay.author %}
+    <div x-show="confirmEssayDelete" x-cloak x-transition.opacity.duration.150ms
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+         @keydown.escape.window="confirmEssayDelete = false">
+      <div class="w-full max-w-sm rounded-xl border border-line bg-raised p-6 shadow-2xl" @click.outside="confirmEssayDelete = false">
+        <h2 class="text-[17px] font-bold text-fg">Delete this {{ essay.get_kind_display|lower }}?</h2>
+        <p class="mt-1 text-sm text-muted">This is permanent and cannot be undone.</p>
+        <div class="mt-6 flex justify-end gap-2">
+          <button type="button" @click="confirmEssayDelete = false" class="btn btn-sm btn-ghost">Cancel</button>
+          <form action="{% url 'posts:delete' username=essay.author.username slug=essay.slug %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Delete comment -->
+  <div x-show="confirmDelete" x-cloak x-transition.opacity.duration.150ms
+       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+       @keydown.escape.window="confirmDelete = false">
+    <div class="w-full max-w-sm rounded-xl border border-line bg-raised p-6 shadow-2xl" @click.outside="confirmDelete = false">
+      <h2 class="text-[17px] font-bold text-fg">Delete this comment?</h2>
+      <p class="mt-1 text-sm text-muted">This can't be undone.</p>
+      <div class="mt-6 flex justify-end gap-2">
+        <button type="button" @click="confirmDelete = false" class="btn btn-sm btn-ghost">Cancel</button>
+        <form :action="deleteTarget" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

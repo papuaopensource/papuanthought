@@ -3,7 +3,7 @@
 
   <!-- Brand -->
   <div class="flex items-center justify-between px-3">
-    <a href="{% url 'essays:feed' %}">
+    <a href="{% url 'posts:feed' %}">
       {% include "partials/logo.html" with wordmark=True %}
     </a>
     {% if drawer %}
@@ -15,12 +15,12 @@
 
   <!-- Primary navigation -->
   <nav class="mt-7 flex flex-col gap-1" aria-label="Main">
-    <a href="{% url 'essays:feed' %}" class="nav-item"
+    <a href="{% url 'posts:feed' %}" class="nav-item"
        {% if url_name == 'feed' and request.GET.feed != 'following' %}aria-current="page"{% endif %}>
       {% include "partials/icon.html" with name="home" size=22 %}
       Home
     </a>
-    <a href="{% url 'essays:feed' %}?feed=following" class="nav-item"
+    <a href="{% url 'posts:feed' %}?feed=following" class="nav-item"
        {% if url_name == 'feed' and request.GET.feed == 'following' %}aria-current="page"{% endif %}>
       {% include "partials/icon.html" with name="users" size=22 %}
       Following
@@ -53,11 +53,11 @@
     </button>
     <div x-show="open" x-cloak @click.outside="open = false" x-transition.opacity.duration.100ms
          class="menu top-full right-1 left-1 mt-2">
-      <a href="{% url 'essays:note_new' %}" class="menu-item items-start">
+      <a href="{% url 'posts:note_new' %}" class="menu-item items-start">
         {% include "partials/icon.html" with name="comment" size=18 cls="mt-0.5 text-muted" %}
         <span><span class="block font-medium">Note</span><span class="block text-xs text-muted">A short post, no title</span></span>
       </a>
-      <a href="{% url 'essays:write' %}" class="menu-item items-start">
+      <a href="{% url 'posts:write' %}" class="menu-item items-start">
         {% include "partials/icon.html" with name="file" size=18 cls="mt-0.5 text-muted" %}
         <span><span class="block font-medium">Article</span><span class="block text-xs text-muted">Long-form, with title and tags</span></span>
       </a>

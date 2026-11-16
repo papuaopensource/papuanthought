@@ -3,7 +3,7 @@
 {% block title %}Edit comment - Papuan Thought{% endblock %}
 
 {% block content %}
-{% url 'essays:detail' username=comment.article.author.username slug=comment.article.slug as essay_url %}
+{% url 'posts:detail' username=comment.article.author.username slug=comment.article.slug as essay_url %}
 <a href="{{ essay_url }}#comment-{{ comment.pk }}" class="btn btn-sm btn-ghost -ml-3">
   {% include "partials/icon.html" with name="arrow-left" size=16 %} Back to {{ comment.article.get_kind_display|lower }}
 </a>

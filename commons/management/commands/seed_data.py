@@ -471,7 +471,7 @@ def add_article_images(article, spec) -> None:
     """Give a freshly seeded article a cover and one captioned image after its first paragraph."""
     from django.core.files.uploadedfile import SimpleUploadedFile
 
-    from essays import images, services
+    from posts import images, services
 
     def upload(scene, label):
         data = generate_illustration(scene, f"{article.slug}-{label}")
@@ -498,12 +498,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from accounts.models import User, Profile
-        from essays.models import Tag, Article
+        from posts.models import Tag, Article
         from interactions.models import Comment, Reaction, Follow
 
         if options["flush"]:
             self.stdout.write("Flushing existing data...")
-            from essays.models import ArticleImage
+            from posts.models import ArticleImage
 
             for upload in ArticleImage.objects.all():
                 upload.image.delete(save=False)

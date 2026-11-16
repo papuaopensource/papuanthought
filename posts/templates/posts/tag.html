@@ -1,0 +1,19 @@
+{% extends "main_layout.html" %}
+
+{% block title %}#{{ tag.name }} - Papuan Thought{% endblock %}
+
+{% block content %}
+<header class="border-b border-line pb-5">
+  <p class="text-[13px] font-medium text-muted">Tag</p>
+  <h1 class="mt-1 text-[28px] leading-tight font-bold tracking-tight text-fg"><span class="text-accent">#</span>{{ tag.name }}</h1>
+  <p class="mt-1 text-sm text-muted">{{ essays|length }} article{{ essays|length|pluralize }}</p>
+</header>
+
+<section aria-label="Articles">
+  {% for essay in essays %}
+    {% include "posts/partials/essay_card.html" %}
+  {% empty %}
+    <p class="py-16 text-center text-sm text-muted">No articles tagged with #{{ tag.name }} yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

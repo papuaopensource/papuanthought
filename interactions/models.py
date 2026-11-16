@@ -4,7 +4,7 @@ from django.db import models
 
 class Comment(models.Model):
     article = models.ForeignKey(
-        "essays.Article", on_delete=models.CASCADE, related_name="comments"
+        "posts.Article", on_delete=models.CASCADE, related_name="comments"
     )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="comments"
@@ -50,7 +50,7 @@ class Reaction(models.Model):
     ]
 
     article = models.ForeignKey(
-        "essays.Article", on_delete=models.CASCADE, related_name="reactions"
+        "posts.Article", on_delete=models.CASCADE, related_name="reactions"
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reactions"
@@ -111,7 +111,7 @@ class Notification(models.Model):
     )
     notification_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     article = models.ForeignKey(
-        "essays.Article",
+        "posts.Article",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -164,7 +164,7 @@ class Report(models.Model):
         related_name="reports_made",
     )
     article = models.ForeignKey(
-        "essays.Article",
+        "posts.Article",
         on_delete=models.CASCADE,
         null=True,
         blank=True,

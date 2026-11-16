@@ -18,7 +18,7 @@
               @click="navOpen = true"
               class="icon-btn size-10"
               aria-label="Open menu">{% include "partials/icon.html" with name="menu" size=22 %}</button>
-      <a href="{% url 'essays:feed' %}">{% include "partials/logo.html" with wordmark=True %}</a>
+      <a href="{% url 'posts:feed' %}">{% include "partials/logo.html" with wordmark=True %}</a>
       <a href="{% url 'interactions:notifications' %}"
          class="icon-btn relative size-10"
          aria-label="Notifications">

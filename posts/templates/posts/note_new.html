@@ -1,0 +1,12 @@
+{% extends "main_layout.html" %}
+
+{% block title %}New note - Papuan Thought{% endblock %}
+
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold tracking-tight text-fg">New note</h1>
+{% if error %}<p class="alert-error mb-4">{{ error }}</p>{% endif %}
+{% url 'posts:note_new' as note_url %}
+{% url 'posts:feed' as feed_url %}
+{% include "posts/partials/note_composer.html" with action=note_url content=content submit_label="Post" cancel_url=feed_url expanded=True autofocus=True article_link=True %}
+<p class="help mt-3">Notes are short posts: thoughts, quick reflections, links. For long-form writing with a title, <a href="{% url 'posts:write' %}" class="font-medium text-accent hover:text-accent-strong">write an article</a>.</p>
+{% endblock %}

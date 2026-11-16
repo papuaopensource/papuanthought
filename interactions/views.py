@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
-from essays.models import Article
+from posts.models import Article
 from accounts.models import User
 from .models import Comment, CommentLike, Notification
 from . import services
@@ -21,7 +21,7 @@ class CommentCreateView(LoginRequiredMixin, View):
             parent = get_object_or_404(Comment, pk=parent_id, article=essay)
         if content:
             services.add_comment(essay, request.user, content, parent=parent, quote=quote)
-        return redirect("essays:detail", username=essay.author.username, slug=essay.slug)
+        return redirect("posts:detail", username=essay.author.username, slug=essay.slug)
 
 
 class CommentEditView(LoginRequiredMixin, View):
@@ -43,7 +43,7 @@ class CommentEditView(LoginRequiredMixin, View):
         if content:
             services.edit_comment(comment, request.user, content)
         essay = comment.article
-        return redirect("essays:detail", username=essay.author.username, slug=essay.slug)
+        return redirect("posts:detail", username=essay.author.username, slug=essay.slug)
 
 
 class CommentDeleteView(LoginRequiredMixin, View):
@@ -51,7 +51,7 @@ class CommentDeleteView(LoginRequiredMixin, View):
         comment = get_object_or_404(Comment, pk=comment_id)
         essay = comment.article
         services.delete_comment(comment, request.user)
-        return redirect("essays:detail", username=essay.author.username, slug=essay.slug)
+        return redirect("posts:detail", username=essay.author.username, slug=essay.slug)
 
 
 class ReactionToggleView(LoginRequiredMixin, View):

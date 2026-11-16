@@ -15,7 +15,7 @@ class LoginView(View):
 
     def get(self, request):
         if request.user.is_authenticated:
-            return redirect("essays:feed")
+            return redirect("posts:feed")
         return render(request, self.template_name)
 
     def post(self, request):
@@ -31,7 +31,7 @@ class LoginView(View):
                 allowed_hosts={request.get_host()},
                 require_https=request.is_secure(),
             ):
-                next_url = reverse("essays:feed")
+                next_url = reverse("posts:feed")
             return redirect(next_url)
         if User.objects.filter(email__iexact=email, is_active=False).exists():
             context["error"] = "This account is not active. Please contact the admin."
@@ -78,7 +78,7 @@ class InvitationAcceptView(View):
         try:
             user = services.accept_invitation(str(token), email, username, password)
             login(request, user, backend="accounts.backends.EmailOrUsernameBackend")
-            return redirect("essays:feed")
+            return redirect("posts:feed")
         except ValueError as e:
             return render(
                 request,
@@ -106,8 +106,8 @@ class ProfileView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from essays.models import Article as ArticleModel
-        from essays.services import get_liked_by, with_engagement
+        from posts.models import Article as ArticleModel
+        from posts.services import get_liked_by, with_engagement
         from interactions.services import get_hearted_ids
 
         published = list(

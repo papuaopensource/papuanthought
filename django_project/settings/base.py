@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     "theme",
     # Local apps
     "accounts",
-    "essays",
+    "posts",
     "interactions",
     "commons",
 ]
@@ -117,7 +117,7 @@ SITE_ID = 1
 TAILWIND_APP_NAME = "theme"
 
 LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "essays:feed"
+LOGIN_REDIRECT_URL = "posts:feed"
 LOGOUT_REDIRECT_URL = "accounts:login"
 
 # SMTP connection details are shared by development and production. Tests use
@@ -197,18 +197,18 @@ UNFOLD = {
                 ],
             },
             {
-                "title": "Articles",
+                "title": "Posts",
                 "separator": True,
                 "items": [
                     {
                         "title": "Articles",
                         "icon": "article",
-                        "link": reverse_lazy("admin:essays_article_changelist"),
+                        "link": reverse_lazy("admin:posts_article_changelist"),
                     },
                     {
                         "title": "Tags",
                         "icon": "tag",
-                        "link": reverse_lazy("admin:essays_tag_changelist"),
+                        "link": reverse_lazy("admin:posts_tag_changelist"),
                     },
                 ],
             },

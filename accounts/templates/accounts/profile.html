@@ -1,5 +1,5 @@
 {% extends "main_layout.html" %}
-{% load essay_filters %}
+{% load post_filters %}
 
 {% block title %}{{ profile_user.get_full_name|default:profile_user.username }} - Papuan Thought{% endblock %}
 {% block description %}{% if profile_user.profile.bio %}{{ profile_user.profile.bio }}{% else %}Essays by {{ profile_user.get_full_name|default:profile_user.username }} on Papuan Thought.{% endif %}{% endblock %}
@@ -130,14 +130,14 @@
   <!-- Activity: articles and notes, newest first -->
   <section x-show="tab === 'activity'" role="tabpanel">
     {% for essay in posts %}
-      {% include "essays/partials/essay_card.html" with hide_follow=True %}
+      {% include "posts/partials/essay_card.html" with hide_follow=True %}
     {% empty %}
       <div class="py-16 text-center">
         <p class="text-sm text-muted">No posts yet.</p>
         {% if user == profile_user %}
           <div class="mt-5 flex justify-center gap-2">
-            <a href="{% url 'essays:note_new' %}" class="btn btn-outline">Post a note</a>
-            <a href="{% url 'essays:write' %}" class="btn btn-accent">Write an article</a>
+            <a href="{% url 'posts:note_new' %}" class="btn btn-outline">Post a note</a>
+            <a href="{% url 'posts:write' %}" class="btn btn-accent">Write an article</a>
           </div>
         {% endif %}
       </div>
@@ -149,14 +149,14 @@
     <section x-show="tab === 'drafts'" x-cloak role="tabpanel">
       {% for essay in draft_essays %}
         <article class="flex items-start gap-4 border-b border-line py-5">
-          <a href="{% url 'essays:edit' username=profile_user.username slug=essay.slug %}" class="group min-w-0 flex-1">
+          <a href="{% url 'posts:edit' username=profile_user.username slug=essay.slug %}" class="group min-w-0 flex-1">
             <h3 class="text-[17px] leading-snug font-bold text-fg group-hover:underline">{{ essay.title }}</h3>
             <p class="mt-1 line-clamp-2 text-[15px] leading-relaxed text-fg/85">{% if essay.excerpt %}{{ essay.excerpt }}{% else %}{{ essay.content|plain_text|truncatewords:40 }}{% endif %}</p>
             <p class="mt-2 text-[13px] text-muted">Draft · created {{ essay.created_at|short_date }}</p>
           </a>
           <div class="flex shrink-0 items-center gap-2">
-            <a href="{% url 'essays:edit' username=profile_user.username slug=essay.slug %}" class="btn btn-sm btn-outline">Edit</a>
-            <form method="post" action="{% url 'essays:edit' username=profile_user.username slug=essay.slug %}">
+            <a href="{% url 'posts:edit' username=profile_user.username slug=essay.slug %}" class="btn btn-sm btn-outline">Edit</a>
+            <form method="post" action="{% url 'posts:edit' username=profile_user.username slug=essay.slug %}">
               {% csrf_token %}
               <button type="submit" name="action" value="publish" class="btn btn-sm btn-accent">Publish</button>
             </form>
@@ -171,7 +171,7 @@
   <!-- Liked: posts this member liked -->
   <section x-show="tab === 'liked'" x-cloak role="tabpanel">
     {% for essay in liked_essays %}
-      {% include "essays/partials/essay_card.html" %}
+      {% include "posts/partials/essay_card.html" %}
     {% empty %}
       <p class="py-16 text-center text-sm text-muted">
         {% if user == profile_user %}Posts you like will show up here.{% else %}{{ profile_user.first_name|default:profile_user.username }} hasn't liked anything yet.{% endif %}
