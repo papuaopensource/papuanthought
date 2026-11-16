@@ -4,21 +4,21 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
-from essays.models import Essay
+from essays.models import Article
 from accounts.models import User
 from .models import Comment, CommentLike, Notification
 from . import services
 
 
 class CommentCreateView(LoginRequiredMixin, View):
-    def post(self, request, essay_id):
-        essay = get_object_or_404(Essay, pk=essay_id, status=Essay.PUBLISHED)
+    def post(self, request, article_id):
+        essay = get_object_or_404(Article, pk=article_id, status=Article.PUBLISHED)
         content = request.POST.get("content", "").strip()
         parent_id = request.POST.get("parent_id")
         quote = request.POST.get("quote", "").strip() or None
         parent = None
         if parent_id:
-            parent = get_object_or_404(Comment, pk=parent_id, essay=essay)
+            parent = get_object_or_404(Comment, pk=parent_id, article=essay)
         if content:
             services.add_comment(essay, request.user, content, parent=parent, quote=quote)
         return redirect("essays:detail", username=essay.author.username, slug=essay.slug)
@@ -42,21 +42,21 @@ class CommentEditView(LoginRequiredMixin, View):
         content = request.POST.get("content", "").strip()
         if content:
             services.edit_comment(comment, request.user, content)
-        essay = comment.essay
+        essay = comment.article
         return redirect("essays:detail", username=essay.author.username, slug=essay.slug)
 
 
 class CommentDeleteView(LoginRequiredMixin, View):
     def post(self, request, comment_id):
         comment = get_object_or_404(Comment, pk=comment_id)
-        essay = comment.essay
+        essay = comment.article
         services.delete_comment(comment, request.user)
         return redirect("essays:detail", username=essay.author.username, slug=essay.slug)
 
 
 class ReactionToggleView(LoginRequiredMixin, View):
-    def post(self, request, essay_id):
-        essay = get_object_or_404(Essay, pk=essay_id, status=Essay.PUBLISHED)
+    def post(self, request, article_id):
+        essay = get_object_or_404(Article, pk=article_id, status=Article.PUBLISHED)
         reaction_type = request.POST.get("reaction_type", "heart")
         result = services.toggle_reaction(essay, request.user, reaction_type)
         return JsonResponse({"reacted": result is not None})
@@ -69,13 +69,6 @@ class FollowToggleView(LoginRequiredMixin, View):
         return JsonResponse({"following": result is not None})
 
 
-class BookmarkToggleView(LoginRequiredMixin, View):
-    def post(self, request, essay_id):
-        essay = get_object_or_404(Essay, pk=essay_id, status=Essay.PUBLISHED)
-        result = services.toggle_bookmark(request.user, essay)
-        return JsonResponse({"bookmarked": result is not None})
-
-
 class CommentLikeToggleView(LoginRequiredMixin, View):
     def post(self, request, comment_id):
         comment = get_object_or_404(Comment, pk=comment_id)
@@ -84,13 +77,51 @@ class CommentLikeToggleView(LoginRequiredMixin, View):
         return JsonResponse({"liked": result is not None, "count": count})
 
 
+class _ReportView(LoginRequiredMixin, View):
+    """POST reason (+ optional details); answers JSON for the report dialog."""
+
+    def get_target(self, **kwargs) -> dict:
+        raise NotImplementedError
+
+    def post(self, request, **kwargs):
+        try:
+            services.submit_report(
+                request.user,
+                reason=request.POST.get("reason", ""),
+                details=request.POST.get("details", ""),
+                **self.get_target(**kwargs),
+            )
+        except ValueError as e:
+            return JsonResponse({"ok": False, "error": str(e)}, status=400)
+        return JsonResponse({"ok": True})
+
+
+class ReportArticleView(_ReportView):
+    def get_target(self, article_id):
+        return {"article": get_object_or_404(Article, pk=article_id, status=Article.PUBLISHED)}
+
+
+class ReportCommentView(_ReportView):
+    def get_target(self, comment_id):
+        return {
+            "comment": get_object_or_404(
+                Comment, pk=comment_id, article__status=Article.PUBLISHED
+            )
+        }
+
+
+class ReportUserView(_ReportView):
+    def get_target(self, username):
+        return {"user": get_object_or_404(User, username=username)}
+
+
 class NotificationListView(LoginRequiredMixin, View):
     template_name = "interactions/notifications.html"
 
     def get(self, request):
         notifications = list(
             Notification.objects.filter(recipient=request.user)
-            .select_related("sender", "sender__profile", "essay", "essay__author")
+            .select_related("sender", "sender__profile", "article", "article__author")
             .order_by("-created_at")[:50]
         )
         Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)

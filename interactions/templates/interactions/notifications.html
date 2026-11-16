@@ -1,94 +1,69 @@
 {% extends "main_layout.html" %}
 
-{% block title %}Notifications — Papuan Thought{% endblock %}
+{% block title %}Notifications - Papuan Thought{% endblock %}
 
 {% block content %}
-<div>
-  <h1 class="text-xs uppercase tracking-widest text-neutral-500 mb-8">Notifications</h1>
+<h1 class="border-b border-line pb-4 text-2xl font-bold tracking-tight text-fg">Notifications</h1>
 
-  {% if notifications %}
-    <div class="flex flex-col divide-y divide-neutral-800">
-      {% for n in notifications %}
-        <div class="flex gap-3 py-5 first:pt-0 {% if not n.is_read %}opacity-100{% else %}opacity-50{% endif %}">
+{% for n in notifications %}
+  <div class="flex gap-3 border-b border-line py-4">
 
-          <!-- Icon -->
-          <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center shrink-0 mt-0.5
-            {% if n.notification_type == 'new_post' %}text-neutral-400
-            {% elif n.notification_type == 'recommend' %}text-amber-500
-            {% elif n.notification_type == 'reaction' %}text-red-400
-            {% elif n.notification_type == 'follow' %}text-neutral-400
-            {% elif n.notification_type == 'comment' %}text-neutral-400
-            {% endif %}">
-            {% if n.notification_type == 'new_post' %}
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>
-              </svg>
-            {% elif n.notification_type == 'recommend' %}
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-            {% elif n.notification_type == 'reaction' %}
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-              </svg>
-            {% elif n.notification_type == 'follow' %}
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>
-              </svg>
-            {% elif n.notification_type == 'comment' %}
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-            {% endif %}
-          </div>
-
-          <!-- Content -->
-          <div class="flex-1 min-w-0">
-            <p class="text-sm text-neutral-300 leading-relaxed">
-              {% if n.notification_type == 'new_post' %}
-                <a href="{% url 'accounts:profile' username=n.sender.username %}" class="font-medium text-neutral-100 hover:text-neutral-300 transition-colors">{{ n.sender.first_name }} {{ n.sender.last_name }}</a>
-                published a new essay —
-                {% if n.essay %}
-                  <a href="{% url 'essays:detail' username=n.essay.author.username slug=n.essay.slug %}" class="text-neutral-400 hover:text-neutral-200 transition-colors">{{ n.essay.title }}</a>
-                {% endif %}
-              {% elif n.notification_type == 'recommend' %}
-                <span class="text-neutral-500">Recommended for you —</span>
-                {% if n.essay %}
-                  <a href="{% url 'essays:detail' username=n.essay.author.username slug=n.essay.slug %}" class="text-neutral-400 hover:text-neutral-200 transition-colors">{{ n.essay.title }}</a>
-                  <span class="text-neutral-600"> by {{ n.essay.author.first_name }} {{ n.essay.author.last_name }}</span>
-                {% endif %}
-              {% elif n.notification_type == 'reaction' %}
-                <a href="{% url 'accounts:profile' username=n.sender.username %}" class="font-medium text-neutral-100 hover:text-neutral-300 transition-colors">{{ n.sender.first_name }} {{ n.sender.last_name }}</a>
-                loved your essay —
-                {% if n.essay %}
-                  <a href="{% url 'essays:detail' username=n.essay.author.username slug=n.essay.slug %}" class="text-neutral-400 hover:text-neutral-200 transition-colors">{{ n.essay.title }}</a>
-                {% endif %}
-              {% elif n.notification_type == 'follow' %}
-                <a href="{% url 'accounts:profile' username=n.sender.username %}" class="font-medium text-neutral-100 hover:text-neutral-300 transition-colors">{{ n.sender.first_name }} {{ n.sender.last_name }}</a>
-                <span class="text-neutral-500"> started following you</span>
-              {% elif n.notification_type == 'comment' %}
-                <a href="{% url 'accounts:profile' username=n.sender.username %}" class="font-medium text-neutral-100 hover:text-neutral-300 transition-colors">{{ n.sender.first_name }} {{ n.sender.last_name }}</a>
-                commented on your essay —
-                {% if n.essay %}
-                  <a href="{% url 'essays:detail' username=n.essay.author.username slug=n.essay.slug %}" class="text-neutral-400 hover:text-neutral-200 transition-colors">{{ n.essay.title }}</a>
-                {% endif %}
-              {% endif %}
-            </p>
-            <p class="text-xs text-neutral-500 mt-1">{{ n.created_at|timesince }} ago</p>
-          </div>
-
-          <!-- Unread dot -->
-          {% if not n.is_read %}
-            <div class="w-1.5 h-1.5 rounded-full bg-neutral-400 shrink-0 mt-2"></div>
-          {% endif %}
-
-        </div>
-      {% endfor %}
+    <!-- Who + what -->
+    <div class="relative shrink-0">
+      {% if n.sender %}
+        <a href="{% url 'accounts:profile' username=n.sender.username %}" tabindex="-1" aria-hidden="true">
+          {% include "partials/avatar.html" with u=n.sender size="size-10 text-sm" %}
+        </a>
+      {% else %}
+        <span class="avatar size-10 text-accent">{% include "partials/icon.html" with name="star" size=18 %}</span>
+      {% endif %}
+      <span class="absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-full border-2 border-page
+                   {% if n.notification_type == 'reaction' or n.notification_type == 'recommend' %}bg-accent-fill text-on-accent{% else %}bg-press text-fg{% endif %}">
+        {% if n.notification_type == 'reaction' %}{% include "partials/icon.html" with name="heart" size=10 stroke="3" %}
+        {% elif n.notification_type == 'comment' %}{% include "partials/icon.html" with name="comment" size=10 stroke="3" %}
+        {% elif n.notification_type == 'follow' %}{% include "partials/icon.html" with name="user-plus" size=10 stroke="3" %}
+        {% elif n.notification_type == 'recommend' %}{% include "partials/icon.html" with name="star" size=10 stroke="3" %}
+        {% else %}{% include "partials/icon.html" with name="pen" size=10 stroke="3" %}{% endif %}
+      </span>
     </div>
-  {% else %}
-    <div class="text-center py-16">
-      <p class="text-sm text-neutral-400">You're all caught up.</p>
+
+    <div class="min-w-0 flex-1">
+      <p class="text-[15px] leading-snug text-fg">
+        {% if n.sender %}
+          <a href="{% url 'accounts:profile' username=n.sender.username %}" class="font-semibold hover:underline">{{ n.sender.get_full_name|default:n.sender.username }}</a>
+        {% endif %}
+        {% if n.notification_type == 'new_post' %}
+          <span class="text-muted">{% if n.article.is_note %}posted a new note{% else %}published a new article{% endif %}</span>
+        {% elif n.notification_type == 'recommend' %}
+          <span class="font-semibold">Recommended for you</span>
+          {% if n.article %}<span class="text-muted">· by {{ n.article.author.get_full_name|default:n.article.author.username }}</span>{% endif %}
+        {% elif n.notification_type == 'reaction' %}
+          <span class="text-muted">liked your {{ n.article.get_kind_display|lower|default:"post" }}</span>
+        {% elif n.notification_type == 'follow' %}
+          <span class="text-muted">started following you</span>
+        {% elif n.notification_type == 'comment' %}
+          <span class="text-muted">commented on your {{ n.article.get_kind_display|lower|default:"post" }}</span>
+        {% endif %}
+      </p>
+      {% if n.article %}
+        <a href="{% url 'essays:detail' username=n.article.author.username slug=n.article.slug %}{% if n.notification_type == 'comment' %}#comments{% endif %}"
+           class="mt-1 block truncate text-[15px] font-semibold text-fg hover:underline">{{ n.article.display_title }}</a>
+      {% endif %}
+      <p class="mt-1 text-[13px] text-muted">{{ n.created_at|timesince }} ago</p>
     </div>
-  {% endif %}
-</div>
+
+    {% if n.notification_type == 'follow' and n.sender %}
+      <div class="shrink-0 self-center">{% include "partials/follow_button.html" with target=n.sender variant="soft" %}</div>
+    {% endif %}
+    {% if not n.is_read %}
+      <span class="mt-2 size-2 shrink-0 rounded-full bg-accent" title="New"></span>
+    {% endif %}
+  </div>
+{% empty %}
+  <div class="py-20 text-center">
+    <span class="avatar size-12 text-muted">{% include "partials/icon.html" with name="bell" size=22 %}</span>
+    <p class="mt-4 text-[15px] font-semibold text-fg">You're all caught up.</p>
+    <p class="mt-1 text-sm text-muted">Likes, comments, and new followers will show up here.</p>
+  </div>
+{% endfor %}
 {% endblock %}
