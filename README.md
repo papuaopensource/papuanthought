@@ -12,8 +12,8 @@ This platform is an open space for Papuans to write and share their perspectives
 
 - Write and publish essays with Markdown support
 - User-created tags
-- Author profiles with essay history and saved collections
-- Reactions (love) and bookmarks per essay
+- Author profiles with essay history and liked essays
+- Likes per essay
 - Comments and discussion
 - Follow authors
 - Notifications: new essays from followed authors and system recommendations
